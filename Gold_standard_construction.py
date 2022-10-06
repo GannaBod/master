@@ -23,6 +23,8 @@ def get_synonyms(relation):
 #if __name__ =='__main__': #exemplary trial of the function and then #main file with the execution of the whole pipeline
 # print(get_synonyms('travel'))
 
+#TODO make function and reuse it evry time... or just save to the pkl file.
+
 full_data=pd.DataFrame()
 i=0
 for filename in os.listdir('./OPIEC_read'):
