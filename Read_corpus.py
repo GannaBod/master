@@ -85,7 +85,7 @@ def extract_triples_full_data(AVRO_SCHEMA_FILE, AVRO_DIRECTORY):
   #return full_data
 if __name__ == "__main__":
 
-AVRO_SCHEMA_FILE = "./avroschema/TripleLinked.avsc"
-AVRO_DIRECTORY="G:/My Drive/Colab Notebooks/data/OPIEC-linked-triples"
-full_data=extract_triples_full_data(AVRO_SCHEMA_FILE, AVRO_DIRECTORY)
+  AVRO_SCHEMA_FILE = "./avroschema/TripleLinked.avsc"
+  AVRO_DIRECTORY="G:/My Drive/Colab Notebooks/data/OPIEC-linked-triples"
+  full_data=extract_triples_full_data(AVRO_SCHEMA_FILE, AVRO_DIRECTORY)
 
