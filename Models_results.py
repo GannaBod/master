@@ -88,7 +88,7 @@ def train_evaluate(model, data, model_name):
                                 filter_triples=X_filter)
     print_evaluation(ranks)
     save_model(model, 'models/'+model_name)
-    return {'model': model, 'mr': mr_score(ranks), 'mrr': mrr_score(ranks), 'hits@1': hits_at_n_score(ranks, 1), 'hits@10': hits_at_n_score(ranks, 10), 'hits@100': hits_at_n_score(ranks, 100)}
+    return {'model': model_name, 'mr': mr_score(ranks), 'mrr': mrr_score(ranks), 'hits@1': hits_at_n_score(ranks, 1), 'hits@10': hits_at_n_score(ranks, 10), 'hits@100': hits_at_n_score(ranks, 100)}
 
 #TODO save all models and present all evaluation results in a table
 #for model in list[] ...
@@ -119,11 +119,32 @@ if __name__ == "__main__":
                           'stop_interval': 2,   
                           'corrupt_side':'s,o'  
                         }
-#for model in ['RandomBaseline', 'ComplEx', 'TransE']
-    model= RandomBaseline()
-    result=train_evaluate(model, data, 'Random_1')
-    #restore 
-    #evaluate
-    df=pd.DataFrame(columns=['model', 'mr', 'mrr', 'hits@1', 'hits@10', 'hits@100'])
+    df=pd.DataFrame(columns=['model', 'mr', 'mrr', 'hits@1', 'hits@10', 'hits@100']) 
+
+    #TODO gives error... do I really need to make it in a loop?
+    #          
+    # 
+    # # 1. Random Model - works
+    # model=RandomBaseline()
+    # result=train_evaluate(model, data, 'RandomBaseline')
+    # df=df.append(result, ignore_index=True)
+
+    # 2. TransE
+    model=TransE()
+    result=train_evaluate(model, data, 'TransE_1')
     df=df.append(result, ignore_index=True)
+    # 3. ComplEx         
+    model=ComplEx()
+    result=train_evaluate(model, data, 'ComplEx_1')
+    df=df.append(result, ignore_index=True)
+    
+    #model= RandomBaseline()
+    #result=train_evaluate(model, data, 'Random_1')
+    #restore 
+    #evaluate - hope, not necessary, main thing is evaluation metrics stored in the table
+    
     print(df)
+    df.to_csv('results.csv')
+
+
+#TODO add clustering results on a gold standard in the table
