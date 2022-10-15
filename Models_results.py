@@ -110,7 +110,7 @@ if __name__ == "__main__":
         "valid_set": data['valid']
     }
     with open("SubsetData", 'wb') as handle:
-        pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(to_pickle, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     early_stopping_params = { 'x_valid': data['valid'],   
                           'criteria': 'mrr',    
@@ -125,18 +125,18 @@ if __name__ == "__main__":
     #          
     # 
     # # 1. Random Model - works
-    # model=RandomBaseline()
-    # result=train_evaluate(model, data, 'RandomBaseline')
-    # df=df.append(result, ignore_index=True)
+    model=RandomBaseline()
+    result=train_evaluate(model, data, 'RandomBaseline')
+    df=df.append(result, ignore_index=True)
 
     # 2. TransE
     model=TransE()
     result=train_evaluate(model, data, 'TransE_1')
     df=df.append(result, ignore_index=True)
-    # 3. ComplEx         
-    model=ComplEx()
-    result=train_evaluate(model, data, 'ComplEx_1')
-    df=df.append(result, ignore_index=True)
+    # # 3. ComplEx         
+    # model=ComplEx()
+    # result=train_evaluate(model, data, 'ComplEx_1')
+    # df=df.append(result, ignore_index=True)
     
     #model= RandomBaseline()
     #result=train_evaluate(model, data, 'Random_1')
