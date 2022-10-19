@@ -121,10 +121,11 @@ if __name__ == "__main__":
                         }
     df=pd.DataFrame(columns=['model', 'mr', 'mrr', 'hits@1', 'hits@10', 'hits@100']) 
 
-    #TODO gives error... do I really need to make it in a loop?
-    #          
-    # 
+    #TODO show progress verbose 
+
     # # 1. Random Model - works
+#there is no get_embeddings method in random baseline model.
+
     model=RandomBaseline()
     result=train_evaluate(model, data, 'RandomBaseline')
     df=df.append(result, ignore_index=True)
@@ -145,6 +146,3 @@ if __name__ == "__main__":
     
     print(df)
     df.to_csv('results.csv')
-
-
-#TODO add clustering results on a gold standard in the table
