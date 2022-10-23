@@ -104,7 +104,7 @@ def cluster(gs_rels, model, gs_clusters):
     print("Adjusted_rand_score KMeans clustering with"+str(n_cl_opt)+"clusters",(ars))
     return ars, silh_best, n_cl_opt, clusters
 
-def visualize(gs_rels, model, gs_clusters, clusters):
+def visualize(gs_rels, model, gs_clusters, clusters, model_name):
     E_gs=model.get_embeddings(np.array(gs_rels), embedding_type='relation')
     #TODO min function
     embeddings_2d = PCA(n_components=2).fit_transform(E_gs)
@@ -131,7 +131,8 @@ def visualize(gs_rels, model, gs_clusters, clusters):
         t = axes[1].text(x[i], y[i], df['gs_rel'][i], ha='center', va='center')
         texts.append(t)
     adjust_text(texts, ax=axes[1])
-    plt.show()
+    #plt.show()
+    plt.savefig('/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/'+model_name)
 
 def save_results(model_name, ars, silh_best, n_cl_opt):
     results=pd.read_csv('results.csv')
@@ -160,23 +161,41 @@ if __name__ == "__main__":
 
     #for model in [model_list]
     #cluster&viz & save results
-    model=restore_model('./models/TransE_1')
+    model_1=restore_model('./models/TransE_0')
+
 
     #error cause only 1 latent feature -> 
-    model_rb=restore_model('./models/RandomBaseline') #remove None from results record
+    model_2=restore_model('./models/RandomBaseline_0') #remove None from results record
 
     #1 visualization of gold standard verbs, golden cluster labels.
-    ars, silh_best, n_cl_opt, clusters = cluster(gs_rels, model, gs_clusters)
-    visualize(gs_rels, model, gs_clusters, clusters)
-    save_results('TransE_1', ars, silh_best, n_cl_opt) 
+    ars, silh_best, n_cl_opt, clusters = cluster(gs_rels, model_1, gs_clusters)
+    visualize(gs_rels, model_1, gs_clusters, clusters, "TransE_0")
+    save_results('TransE_0', ars, silh_best, n_cl_opt) 
 
     #TODO what about diff. models and correlation - random baseline does not work for visualization
     #can I think of my own random baseline ? -> embeddings of size like transE but not trained at all?
-    ars2, silh_best2, n_cl_opt2, clusters = cluster(gs_rels, model_rb, gs_clusters)
+    ars2, silh_best2, n_cl_opt2, clusters = cluster(gs_rels, model_2, gs_clusters)
 
     
     # ars_2, silh_best_2, n_cl_opt_2 = cluster_and_visualize(gs_rels, model_rb, gs_clusters)
-    save_results('RandomBaseline', ars2, silh_best2, n_cl_opt2) 
+    save_results('RandomBaseline0', ars2, silh_best2, n_cl_opt2) 
+
+    ##3
+    model_3=restore_model('./models/ComplEx_0')
+
+    ars3, silh_best3, n_cl_opt3, clusters3 = cluster(gs_rels, model_3, gs_clusters)
+    visualize(gs_rels, model_3, gs_clusters, clusters, 'ComplEx0')
+    save_results('ComplEx_0', ars3, silh_best3, n_cl_opt3) 
+    ##4
+    model_4=restore_model('./models/HolE_0')
+    ars4, silh_best4, n_cl_opt4, clusters4 = cluster(gs_rels, model_4, gs_clusters)
+    visualize(gs_rels, model_4, gs_clusters, clusters, 'HolE0')
+    save_results('HolE_0', ars4, silh_best4, n_cl_opt4) 
+    ##5
+    model_5=restore_model('./models/DistMult_0')
+    ars5, silh_best5, n_cl_opt5, clusters5 = cluster(gs_rels, model_5, gs_clusters)
+    visualize(gs_rels, model_5, gs_clusters, clusters, 'DistMult0')
+    save_results('DistMult_0', ars5, silh_best5, n_cl_opt5) 
 
 
 

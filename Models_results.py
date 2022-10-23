@@ -1,4 +1,5 @@
 import tensorflow as tf
+tf.compat.v1.disable_eager_execution()
 # device_name = tf.test.gpu_device_name()
 # if device_name != '/device:GPU:0':
 #   raise SystemError('GPU device not found')
@@ -126,18 +127,34 @@ if __name__ == "__main__":
     # # 1. Random Model - works
 #there is no get_embeddings method in random baseline model.
 
-    model=RandomBaseline()
-    result=train_evaluate(model, data, 'RandomBaseline')
+    model=RandomBaseline(verbose=True)
+    result=train_evaluate(model, data, 'RandomBaseline_0')
     df=df.append(result, ignore_index=True)
+    save_model(model, '/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/RandomBaseline_0')
 
     # 2. TransE
-    model=TransE()
-    result=train_evaluate(model, data, 'TransE_1')
+    model=TransE(verbose=True)
+    result=train_evaluate(model, data, 'TransE_0')
     df=df.append(result, ignore_index=True)
-    # # 3. ComplEx         
-    # model=ComplEx()
-    # result=train_evaluate(model, data, 'ComplEx_1')
-    # df=df.append(result, ignore_index=True)
+    save_model(model, '/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/TransE_0')
+    # 3. ComplEx         
+    model=ComplEx(verbose=True)
+    result=train_evaluate(model, data, 'ComplEx_0')
+    df=df.append(result, ignore_index=True)
+    save_model(model, '/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/ComplEx_0')
+    # 3. HolE         
+    model=HolE(verbose=True)
+    result=train_evaluate(model, data, 'HolE_0')
+    df=df.append(result, ignore_index=True)
+    save_model(model, '/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/HolE_0')
+
+    # 3. DistMult         
+    model=DistMult(verbose=True)
+    result=train_evaluate(model, data, 'DistMult_0')
+    df=df.append(result, ignore_index=True)
+    save_model(model, '/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/DistMult_0')
+
+
     
     #model= RandomBaseline()
     #result=train_evaluate(model, data, 'Random_1')
