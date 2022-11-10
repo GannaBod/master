@@ -1,3 +1,6 @@
+###CONVERTS AVRO DATA TO TRIPLES IN PKL FILES AND SAVE IN ./OPIEC_read
+#triples and sentences are saved
+
 from avro.datafile import DataFileReader
 from avro.io import DatumReader
 import os
@@ -6,6 +9,16 @@ import pickle
 def save_pkl(path, file):
   with open(path, 'wb') as handle:
         pickle.dump(file, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+def load_pkl(path):
+  with open(path, 'rb') as file:
+    return pickle.load(file)
+    
+def load_dict(path):
+    data=load_pkl(path)
+    entities=data['entities']
+    relations=data['relations']
+    return data, entities, relations
 
 def init_dict():
   sentences=[]

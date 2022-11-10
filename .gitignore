@@ -130,4 +130,6 @@ dist
 .pnp.*
 env37
 SubsetData
-models/TransE_1
+models
+SubsetData_3_docs
+SubsetData_9_docs

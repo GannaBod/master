@@ -22,6 +22,7 @@ from ampligraph.utils import create_tensorboard_visualizations
 from clusteval import clusteval
 
 from Models_results import load_data, prepare_data
+from Read_corpus import load_dict
 #put here visualization functions
 
 # with open("SubsetData", 'rb') as file:
@@ -32,23 +33,36 @@ from Models_results import load_data, prepare_data
 # data['train']=data["train_set"]
 # data['test']=data["test_set"]
 # data['valid']=data["valid_set"]
-def prepare_gold_st(DOC_PATH, data):
+# def prepare_gold_st(DOC_PATH, data): #long function to drop unnecessary columns
+#     gs=pd.read_csv(DOC_PATH)
+#     gs=gs.drop(columns=['triples_id'])
+#     gs['triples']=gs['triples'].apply(lambda x: eval(x))
+#     gs_rels=[]
+#     gs_clusters=[]
+#     #TODO it's a list with repeated verbs - duplicated clustering data. Does not make sense.
+    
+#     #TODO only train data? why?
+#     df=pd.DataFrame(data['train'], columns=[['subject','predicate','object']]) 
+#     rels = np.array(list(set(df.values[:, 1]))) #relations set
+
+#     for row in gs.itertuples():
+#         if row.verb in rels:
+#             gs_rels.append(row.verb)
+#             gs_clusters.append(row.cluster)
+#     return gs, gs_rels, gs_clusters
+
+def gold_st(DOC_PATH, relations):
     gs=pd.read_csv(DOC_PATH)
-    gs=gs.drop(columns=['triples_id'])
-    gs['triples']=gs['triples'].apply(lambda x: eval(x))
     gs_rels=[]
     gs_clusters=[]
-    #TODO it's a list with repeated verbs - duplicated clustering data. Does not make sense.
-    
-    #TODO only train data? why?
-    df=pd.DataFrame(data['train'], columns=[['subject','predicate','object']]) 
-    rels = np.array(list(set(df.values[:, 1]))) #relations set
-
     for row in gs.itertuples():
-        if row.verb in rels:
+        if row.verb in relations:
             gs_rels.append(row.verb)
             gs_clusters.append(row.cluster)
+    print("Gold standard relations number:",  len(gs_rels))
     return gs, gs_rels, gs_clusters
+
+
 
 def print_info(data, entities, relations):
     print('Unique entities: ', len(entities))
@@ -81,9 +95,34 @@ def print_info(data, entities, relations):
 #     ars=adjusted_rand_score(gs_clusters, clusters)
 #     print("Adjusted_rand_score KMeans clustering with"+str(n_cl_opt)+"clusters",(ars))
 
-def cluster(gs_rels, model, gs_clusters):
+def cluster_eval(gs_rels, model, gs_clusters):
     #embeddings for gold standard
-    E_gs=model.get_embeddings(np.array(gs_rels), embedding_type='relation')
+    E_gs=[]
+    #gs_clusters=[]
+    print("length gs_clusters", len(gs_clusters))
+    print("length gs_rels", len(gs_rels))
+    probl_v=[]
+    for verb in gs_rels:
+        try:
+            E_gs.append(model.get_embeddings(np.array(verb), embedding_type='relation'))
+            #gs_clusters.append()
+        except (RuntimeError, TypeError, NameError, IndexError, ValueError):
+            print(verb)
+            probl_v.append(verb)
+            
+    E_gs=np.array(E_gs)  
+    print('Prob_v:',len(probl_v))
+    prob_i=[i for i,verb in enumerate(gs_rels) if verb in probl_v]
+    for i in sorted(prob_i, reverse=True):
+        del gs_clusters[i] 
+        del gs_rels[i]
+
+    #gs_clusters.remove(gs_clusters[gs_rels.index(verb)])
+    #gs_rels.remove(verb)      
+    print("E_gs:", type(E_gs))
+    print("E_gs shape:", E_gs.shape)
+    print("length gs_clusters", len(gs_clusters))
+    #E_gs=model.get_embeddings(np.array(gs_rels), embedding_type='relation')
     # silhouette_avg = silhouette_score(E_gs, clusters)
     # print("For n_clusters = 5, the average silhouette_score on GS is :", silhouette_avg)
 
@@ -99,6 +138,7 @@ def cluster(gs_rels, model, gs_clusters):
     #kMeans clustering
     kmeans = KMeans(n_clusters=n_cl_opt, random_state=0).fit(E_gs)
     clusters=kmeans.labels_
+    print(len(clusters))
     #print results
     ars=adjusted_rand_score(gs_clusters, clusters)
     print("Adjusted_rand_score KMeans clustering with"+str(n_cl_opt)+"clusters",(ars))
@@ -150,52 +190,61 @@ def save_results(model_name, ars, silh_best, n_cl_opt):
 
 if __name__ == "__main__":
 
-    #Load data
-    full_data=load_data('./OPIEC_read')
-    data, entities, relations = prepare_data(full_data, 100,2000)
+#READ OR LOAD?
+    #Load data #read or load???
+    # full_data=load_data('./OPIEC_read')
+    # data, entities, relations = prepare_data(full_data, 100,2000)
+    # with open("SubsetData", 'rb') as file:
+    #     data=pickle.load(file)
+    # data['train']=data['train_set']
+    # data['test']=data['test_set']
+    # data['valid']=data['valid_set']
+    # entities=data['entities']
+    # relations=data['relations']
+    data, entities, relations=load_dict('Subset_3_docs')
+
     #entity_id_map = {ent_name: id for id, ent_name in enumerate(entities)}
     #relation_id_map = {rel: id for id, rel in enumerate(relations)}
 
-    gs, gs_rels, gs_clusters =prepare_gold_st("Gold_standard_ver2.csv", data)
+    #gs, gs_rels, gs_clusters =prepare_gold_st("Gold_standard_ver2.csv", data)
+    gs, gs_rels, gs_clusters=gold_st('rel_syns.csv', relations)
     print_info(data, entities, relations)
 
     #for model in [model_list]
     #cluster&viz & save results
-    model_1=restore_model('./models/TransE_0')
+    model_1=restore_model("G:\My Drive\Colab Notebooks\Sessions\models 9 docs\HolE_1")
 
 
     #error cause only 1 latent feature -> 
-    model_2=restore_model('./models/RandomBaseline_0') #remove None from results record
+    #model_2=restore_model('./models/RandomBaseline_0') #remove None from results record
 
     #1 visualization of gold standard verbs, golden cluster labels.
-    ars, silh_best, n_cl_opt, clusters = cluster(gs_rels, model_1, gs_clusters)
+    ars, silh_best, n_cl_opt, clusters = cluster_eval(gs_rels, model_1, gs_clusters)
     visualize(gs_rels, model_1, gs_clusters, clusters, "TransE_0")
     save_results('TransE_0', ars, silh_best, n_cl_opt) 
 
-    #TODO what about diff. models and correlation - random baseline does not work for visualization
-    #can I think of my own random baseline ? -> embeddings of size like transE but not trained at all?
-    ars2, silh_best2, n_cl_opt2, clusters = cluster(gs_rels, model_2, gs_clusters)
+    # #TODO what about diff. models and correlation - random baseline does not work for visualization
+    # #can I think of my own random baseline ? -> embeddings of size like transE but not trained at all?
+    # ars2, silh_best2, n_cl_opt2, clusters = cluster(gs_rels, model_2, gs_clusters)
 
     
-    # ars_2, silh_best_2, n_cl_opt_2 = cluster_and_visualize(gs_rels, model_rb, gs_clusters)
-    save_results('RandomBaseline0', ars2, silh_best2, n_cl_opt2) 
 
-    ##3
-    model_3=restore_model('./models/ComplEx_0')
+    # ##3
+    # model_3=restore_model('./models/ComplEx_0')
 
-    ars3, silh_best3, n_cl_opt3, clusters3 = cluster(gs_rels, model_3, gs_clusters)
-    visualize(gs_rels, model_3, gs_clusters, clusters, 'ComplEx0')
-    save_results('ComplEx_0', ars3, silh_best3, n_cl_opt3) 
-    ##4
-    model_4=restore_model('./models/HolE_0')
-    ars4, silh_best4, n_cl_opt4, clusters4 = cluster(gs_rels, model_4, gs_clusters)
-    visualize(gs_rels, model_4, gs_clusters, clusters, 'HolE0')
-    save_results('HolE_0', ars4, silh_best4, n_cl_opt4) 
-    ##5
-    model_5=restore_model('./models/DistMult_0')
-    ars5, silh_best5, n_cl_opt5, clusters5 = cluster(gs_rels, model_5, gs_clusters)
-    visualize(gs_rels, model_5, gs_clusters, clusters, 'DistMult0')
-    save_results('DistMult_0', ars5, silh_best5, n_cl_opt5) 
+    # ars3, silh_best3, n_cl_opt3, clusters3 = cluster_eval(gs_rels, model_3, gs_clusters)
+    # visualize(gs_rels, model_3, gs_clusters, clusters, 'ComplEx0')
+    # save_results('ComplEx_0', ars3, silh_best3, n_cl_opt3) 
+    # ##4
+    # model_4=restore_model('./models/HolE_0')
+    # ars4, silh_best4, n_cl_opt4, clusters4 = cluster_eval(gs_rels, model_4, gs_clusters)
+    # visualize(gs_rels, model_4, gs_clusters, clusters, 'HolE0')
+    # save_results('HolE_0', ars4, silh_best4, n_cl_opt4) 
+    # ##5
+    # model_5=restore_model('./models/DistMult_0')
+    # ars5, silh_best5, n_cl_opt5, clusters5 = cluster_eval(gs_rels, model_5, gs_clusters)
+    # visualize(gs_rels, model_5, gs_clusters, clusters, 'DistMult0')
+    # save_results('DistMult_0', ars5, silh_best5, n_cl_opt5) 
 
 
 
