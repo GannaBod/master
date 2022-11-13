@@ -131,5 +131,10 @@ dist
 env37
 SubsetData
 models
-SubsetData_3_docs
-SubsetData_9_docs
+Subset_3_docs
+Subset_9_docs
+Human evaluation.csv
+All_data_final
+results.csv
+results_model_selection.csv
+
