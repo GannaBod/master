@@ -9,6 +9,13 @@ import os
 # import random
 import pickle
 import numpy as np
+import re
+import nltk
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+nltk.download('punkt')
+stopwords.words("english")
+
 # import ampligraph
 
 # from ampligraph.latent_features import TransE, ComplEx, DistMult, HolE, ConvE, ConvKB, RandomBaseline
@@ -18,7 +25,7 @@ import numpy as np
 # from ampligraph.evaluation import mr_score, mrr_score, hits_at_n_score
 from ampligraph.evaluation import train_test_split_no_unseen
 
-from Read_corpus import save_pkl, load_pkl
+from Read_corpus import save_pkl, load_pkl, load_dict
 
 def load_data(DATA_DIRECTORY: str, n: int):
     full_data=pd.DataFrame()
@@ -35,8 +42,31 @@ def load_data(DATA_DIRECTORY: str, n: int):
     print(str(i)+' documents read. Overall '+str(len(full_data))+' triples found')
     return full_data
 
-def prepare_data(full_data, split_ratio):#, valid_size, test_size):
+def preprocess(text: str):
+  # remove links
+  text = re.sub(r"http\S+", "", text)
+  #REMOVE QUANTITIES
+  text = re.sub(r"QUANT_._.", "QUANT", text)
+  # remove special chars and numbers
+  text = re.sub("[^A-Za-z]+", " ", text)
+  # return text in lower case and stripped of whitespaces
+  text = text.lower().strip()
+
+  ##disregard empty strings and exclude !none
+  return text
+
+def prepare_data(full_data, split_ratio, preprocessed: bool):#, valid_size, test_size):
     X=np.array(full_data.values)
+
+    if preprocessed:
+        full_data[1]=full_data[1].apply(lambda x: preprocess(x)) #leave stop words
+    full_data=full_data.drop(full_data.index[full_data.apply(lambda x: x[2] in ['!None!'], axis=1)])
+    full_data=full_data.drop(full_data.index[full_data.apply(lambda x: x[1] in [''], axis=1)])
+    full_data=full_data.drop_duplicates()
+
+    entities=np.array(list(set(full_data.values[:, 0]).union(full_data.values[:, 2])))
+    relations=np.array(list(set(full_data.values[:, 1])))
+
 
     #valid and test size proportional to the data length
     t_size=round(split_ratio*len(full_data))
@@ -45,8 +75,6 @@ def prepare_data(full_data, split_ratio):#, valid_size, test_size):
     data['train'], data['valid'] = train_test_split_no_unseen(X, test_size=t_size, seed=1, allow_duplication=False) 
     data['train'], data['test']=train_test_split_no_unseen(data['train'], test_size=t_size, seed=1, allow_duplication=False)
 
-    entities=np.array(list(set(full_data.values[:, 0]).union(full_data.values[:, 2])))
-    relations=np.array(list(set(full_data.values[:, 1])))
 
     print('Unique entities: ', len(entities))
     print('Unique relations: ', len(relations))
@@ -73,11 +101,17 @@ if __name__ == "__main__":
 
 ##CHOOSE THE DATA SUBSET
     full_data=load_data('G:/My Drive/Colab Notebooks/data/OPIEC', 100)
+    print(full_data)
+    #print(full_data.columns())
 
-    data, entities, relations = prepare_data(full_data, 0.1) #, 100, 2000) #train test valid size
-
-#save data for future use
+    data, entities, relations = prepare_data(full_data, 0.1, True) #, 100, 2000) #train test valid size
+    print(relations[:10])
     to_pickle = to_dict(data, entities, relations)
-    save_pkl('All_data_final', to_pickle)
-    # with open("SubsetData", 'wb') as handle:
-    #     pickle.dump(to_pickle, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    save_pkl('Full_data_preproc', to_pickle)
+    # data, entities, relations=load_dict('Subset_3_docs')
+    # print(relations[:5])
+    # print(entities[:10])
+    # #lowercase?
+    # rels_preprocess=[preprocess(relation, remove_stopwords=True) for relation in relations[:10]]
+    # print(rels_preprocess)
+

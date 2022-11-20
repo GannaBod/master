@@ -1,3 +1,4 @@
+#RENAME INTO CLUSTER VISUALISATION
 import pandas as pd
 import os
 import random
@@ -51,6 +52,7 @@ from Read_corpus import load_dict
 #             gs_clusters.append(row.cluster)
 #     return gs, gs_rels, gs_clusters
 
+#remove from here 
 def gold_st(DOC_PATH, relations):
     gs=pd.read_csv(DOC_PATH)
     gs_rels=[]

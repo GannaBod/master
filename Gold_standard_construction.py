@@ -105,12 +105,12 @@ if __name__ == "__main__":
 
 # relations=pd.DataFrame({'relations':list(relations)})
 
-# for verb in data['relation'].to_list():
+# for verb in one_w_relations:
 #   synonyms=get_synonyms(verb)
 #   print(verb)
 
 #   for synonym in synonyms:
-#     if synonym in (relations['relations'].to_list()):
+#     if synonym in (relations):
 #       print(synonym)
 #   print('--------')
 

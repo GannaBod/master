@@ -24,6 +24,7 @@ from ampligraph.evaluation import train_test_split_no_unseen
 
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.cluster import KMeans
+from clusteval import clusteval
 
 from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.metrics.cluster import adjusted_rand_score
@@ -83,21 +84,73 @@ def print_evaluation(ranks):
 
 #TODO clean code from not my comments
 
-def train_evaluate(model, data, model_name, early_stopping_params):
-    # model.fit(data['train'],                                      
-    #         early_stopping=True,                          
-    #         early_stopping_params=early_stopping_params) 
-    # save_model(model, 'models/'+model_name)
-    X_filter = np.concatenate([data['train'], data['valid'], data['test']], 0)
-    ranks = evaluate_performance(data['test'], 
-                                model=model, 
-                                filter_triples=X_filter)
-    print_evaluation(ranks)
-    return {'model': model_name, 'mr': mr_score(ranks), 'mrr': mrr_score(ranks), 'hits@1': hits_at_n_score(ranks, 1), 'hits@10': hits_at_n_score(ranks, 10), 'hits@100': hits_at_n_score(ranks, 100)}
+def train_save(model, data, model_name, early_stopping_params):
+    model.fit(data['train'],                                      
+            early_stopping=True,                          
+            early_stopping_params=early_stopping_params) 
+    save_model(model, 'models/'+model_name)
+    # X_filter = np.concatenate([data['train'], data['valid'], data['test']], 0)
+    # ranks = evaluate_performance(data['test'], 
+    #                             model=model, 
+    #                             filter_triples=X_filter)
+    # print_evaluation(ranks)
+    # return {'model': model_name, 'mr': mr_score(ranks), 'mrr': mrr_score(ranks), 'hits@1': hits_at_n_score(ranks, 1), 'hits@10': hits_at_n_score(ranks, 10), 'hits@100': hits_at_n_score(ranks, 100)}
 
 #TODO save all models and present all evaluation results in a table
 #for model in list[] ...
 #print(df)
+
+def gold_st(DOC_PATH, relations):
+    gs=pd.read_csv(DOC_PATH)
+    gs_rels=[]
+    gs_clusters=[]
+    for row in gs.itertuples():
+        if row.verb in relations:
+            gs_rels.append(row.verb)
+            gs_clusters.append(row.cluster)
+    print("Gold standard relations number:",  len(gs_rels))
+    return gs_rels, gs_clusters
+
+#def link_prediction(model):
+def clustering_result(model, model_name, gs_rels, gs_clusters):
+    E_gs=[]
+    probl_v=[]
+    for verb in gs_rels:
+        try:
+            E_gs.append(model.get_embeddings(np.array(verb), embedding_type='relation'))
+        except (RuntimeError, TypeError, NameError, IndexError, ValueError):
+            probl_v.append(verb)
+    E_gs=np.array(E_gs)  
+    prob_i=[i for i,verb in enumerate(gs_rels) if verb in probl_v]
+    for i in sorted(prob_i, reverse=True):
+        del gs_clusters[i] 
+        del gs_rels[i]    
+
+    ce = clusteval(cluster='kmeans', evaluate='silhouette') #in 
+    c=ce.fit(E_gs)
+    score_table=c['score']
+    score_max=score_table['score'].max()
+    n_cl_opt=score_table[score_table['score']==score_max]['clusters'].values[0]
+    silh_best=score_table['score'].max()
+    print('Optimal number of clusters =', n_cl_opt)
+    print('Best silhouette score =', silh_best)
+
+    ##DOES NOT MAKE SENSE -> IN CLUSTEVAL WITH CLUSTER WITH DIFF ALG
+    #kMeans clustering
+    kmeans = KMeans(n_clusters=n_cl_opt, random_state=0).fit(E_gs)
+    clusters=kmeans.labels_
+    print(len(clusters))
+    #print results
+    ars=adjusted_rand_score(gs_clusters, clusters)
+#ARS_GS
+    n_cl_gs=len(set(gs_clusters))
+    kmeans = KMeans(n_clusters=n_cl_gs, random_state=0).fit(E_gs)
+    clusters=kmeans.labels_
+    ars_gs=adjusted_rand_score(gs_clusters, clusters)
+
+    print("Adjusted_rand_score KMeans clustering with"+str(n_cl_opt)+"clusters",(ars))
+    return {'Model': model_name, 'N_cl_opt': n_cl_opt, 'silh_best': silh_best, 'ARS_opt': ars, 'ARS_gs': ars_gs}
+
 
 if __name__ == "__main__":
 
@@ -116,7 +169,7 @@ if __name__ == "__main__":
 #     }
 #     with open("SubsetData", 'wb') as handle:
 #         pickle.dump(to_pickle, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    data, entities, relations= load_dict('Subset_3_docs')
+    data, entities, relations= load_dict('Subset_3_docs_new')
 
     early_stopping_params = { 'x_valid': data['valid'],   
                           'criteria': 'mrr',    
@@ -126,7 +179,7 @@ if __name__ == "__main__":
                           'corrupt_side':'s,o'  
                         }
     df=pd.DataFrame(columns=['model', 'mr', 'mrr', 'hits@1', 'hits@10', 'hits@100']) 
-
+    gs_rels, gs_clusters=gold_st('Gold_standard_ver3.csv', relations)
     #TODO show progress verbose 
 
     # # 1. Random Model - works
@@ -137,30 +190,34 @@ if __name__ == "__main__":
     # df=df.append(result, ignore_index=True)
     #save_model(model, "G:\My Drive\Colab Notebooks\Sessions\models 9 docs\0\RandomBaseline_0")
 
-    # # 2. TransE
-    # model=TransE(verbose=True)
-    # result=train_evaluate(model, data, 'TransE_0',early_stopping_params)
-    # df=df.append(result, ignore_index=True)
-    # save_model(model, '/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/TransE_0')
-    # 3. ComplEx         
-    #model=ComplEx(verbose=True)
-    model=restore_model('models/ComplEx_0')
-    result=train_evaluate(model, data, 'ComplEx_0', early_stopping_params)
-    df=df.append(result, ignore_index=True)
-    # save_model(model, '/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/ComplEx_0')
+    # 2. TransE
+    #model=TransE(verbose=True)
+    #result=train_evaluate(model, data, 'TransE_new',early_stopping_params)
+    #df=df.append(result, ignore_index=True)
+    model=restore_model('models/TransE_new')
+    result=clustering_result(model, 'TransE_best', gs_rels, gs_clusters)
+    print(result)
+
+    #save_model(model, '/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/TransE_0')
+    #3. ComplEx         
+    # model=ComplEx(verbose=True)
+    # #model=restore_model('models/ComplEx_0')
+    # result=train_evaluate(model, data, 'ComplEx_new', early_stopping_params)
+    #df=df.append(result, ignore_index=True)
+    #save_model(model, '/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/ComplEx_0')
     # # 3. HolE         
     # model=HolE(verbose=True)
-    # result=train_evaluate(model, data, 'HolE_0', early_stopping_params)
+    # result=train_evaluate(model, data, 'HolE_pre', early_stopping_params)
     # df=df.append(result, ignore_index=True)
-    # save_model(model, '/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/HolE_0')
+    # # save_model(model, '/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/HolE_0')
 
     # # 3. DistMult         
     # model=DistMult(verbose=True)
-    # result=train_evaluate(model, data, 'DistMult_0', early_stopping_params)
+    # result=train_evaluate(model, data, 'DistMult_pre', early_stopping_params)
     # df=df.append(result, ignore_index=True)
-    # save_model(model, '/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/DistMult_0')
+    #save_model(model, '/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/DistMult_0')
 
 
     
-    print(df)
-    df.to_csv('results.csv')
+    #print(df)
+    #df.to_csv('results_Preprocessed2.csv')
