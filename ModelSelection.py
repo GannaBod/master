@@ -49,18 +49,16 @@ def sample_param_grid(param_grid, n_iter, regul_params=None):
     param_list = list(ParameterSampler(param_grid, n_iter=n_iter,  random_state=rng))
     dict_list = [dict((k, v) for (k, v) in d.items())
                     for d in param_list]
-    print(dict_list)
     if regul_params is not None:
         reg_params_list=list(ParameterSampler(regul_params, n_iter=n_iter,  random_state=rng))
         reg_dict_list = [dict((k, v) for (k, v) in d.items())
                         for d in reg_params_list]
-        print(reg_dict_list)
         if len(reg_dict_list)<len(dict_list):
             reg_dict_list.extend(random.choices(reg_dict_list, k=(len(dict_list)-len(reg_dict_list))))
         
         for i, element in enumerate(dict_list):
             element.update({'regularizer_parameters': reg_dict_list[i]})
-            element.update({'optimizer_parameters':{'lr': [1e-3]}})
+            element.update({'optimizer_parameters':{'lr': 1e-3}})
 
     return dict_list
     
@@ -97,14 +95,28 @@ def hp_search_kge(model_class, param_dict_list, data, early_stopping_params, gs,
     gs_rels, gs_clusters=gold_st(gs, relations)
     df=pd.DataFrame()
     for i, parameter_combination in enumerate(param_dict_list):
-        model=model_class
-        model.fit(data['train'], parameter_combination,                          
+        print(parameter_combination)
+
+        model=model_class(batches_count=parameter_combination['batches_count'],
+        seed= parameter_combination['seed'],
+        epochs= parameter_combination['epochs'],
+        k= parameter_combination['k'],
+        eta= parameter_combination['eta'],
+        loss= parameter_combination['loss'],
+        #regularizer= parameter_combination['regularizer'],
+        optimizer= parameter_combination['optimizer'],
+        initializer=parameter_combination['initializer'],
+        regularizer_params=parameter_combination['regularizer_parameters'],
+        optimizer_params=parameter_combination['optimizer_parameters'],
+        verbose= parameter_combination['verbose'])
+
+        model.fit(data['train'],                          
         early_stopping_params=early_stopping_params) 
         print('Parameter combination:', parameter_combination)
         cl_result=clustering_result(model, i, gs_rels, gs_clusters)
         #maybe here exclude silhouette optimzation and leave only kmeans with gs cluster number
         df=df.append({"Model": model_class, 'params': parameter_combination, 'ARS_gs': cl_result['ARS_gs'], 'N_cl_opt': cl_result['N_cl_opt'], 'Silh_best': cl_result['silh_best'], 'ARS_opt': cl_result['ARS_opt'] }, ignore_index=True)
-    df.to_csv('Model_selection_kge.csv')
+    df.to_csv('Model_selection_kge_DistMult.csv')
 
 def hp_search_clustering(model, relations, cl_param_list, model_name, gs):
     df=pd.DataFrame()
@@ -125,10 +137,11 @@ def hp_search_clustering(model, relations, cl_param_list, model_name, gs):
     for cl_param_combination in cl_param_list:
         ce = clusteval(cluster=cl_param_combination['cluster'], evaluate=cl_param_combination['evaluate'], linkage=cl_param_combination['linkage'], metric=cl_param_combination['metric']) 
         c=ce.fit(E_gs)
-        score_table=c['score']
-        score_max=score_table['score'].max()
-        n_cl_opt=score_table[score_table['score']==score_max]['clusters'].values[0]
-        silh_best=score_table['score'].max()
+        #depends on the score
+        # score_table=c['score']
+        # score_max=score_table['score'].max()
+        # n_cl_opt=score_table[score_table['score']==score_max]['clusters'].values[0]
+        # silh_best=score_table['score'].max()
         
         #gold standard evaluation optimal
         if cl_param_combination['cluster'] =='agglomerative':
@@ -155,30 +168,31 @@ def hp_search_clustering(model, relations, cl_param_list, model_name, gs):
 
 if __name__ == "__main__":
 
-    data, entities, relations= load_dict('Subset_3_docs')
+    data, entities, relations= load_dict('Preprocessed')
     ###
-    X =np.concatenate([data['train'], data['valid'], data['test']], 0)[:10000]
-    data = {}
-    data['train'], data['valid'] = train_test_split_no_unseen(X, test_size=10, seed=1, allow_duplication=False) 
-    data['train'], data['test']=train_test_split_no_unseen(data['train'], test_size=10, seed=1, allow_duplication=False)
-    entities=np.array(list(set(X[:, 0]).union(X[:, 2])))
-    relations=np.array(list(set(X[:, 1])))
+    # X =np.concatenate([data['train'], data['valid'], data['test']], 0)[:10000]
+    # data = {}
+    # data['train'], data['valid'] = train_test_split_no_unseen(X, test_size=10, seed=1, allow_duplication=False) 
+    # data['train'], data['test']=train_test_split_no_unseen(data['train'], test_size=10, seed=1, allow_duplication=False)
+    # entities=np.array(list(set(X[:, 0]).union(X[:, 2])))
+    # relations=np.array(list(set(X[:, 1])))
     ###
     
     param_grid = {
                     "batches_count": [100],
                     "seed": [0],
-                    "epochs": [20, 50],
+                    "epochs": [20, 50, 100],
                     "k": [100, 200],
                     "eta": [1, 5, 10],
-                    "loss": ["pairwise", 'nll', 'multiclass_nll', 'self_adversarial'],
-                    "regularizer": ["LP"],
+                    "loss": ["pairwise", 'nll', 'absolute_margin', 'multiclass_nll', 'self_adversarial'],
+                    #"regularizer": ["LP"],
                     "optimizer": ["adam", 'adagrad','sgd'],
+                    "initializer":['normal', 'uniform', 'xavier'],
                     "verbose": [True]
                 }
-    regul_params ={"p": [3,4], "lambda": [1e-5]}
+    regul_params ={"p": [3,4], "lambda": [1e-3, 1e-5]}
 
-    param_dict_list=sample_param_grid(param_grid, 2, regul_params)
+    param_dict_list=sample_param_grid(param_grid, 7, regul_params)
 
     early_stopping_params = { 'x_valid': data['valid'],   
                           'criteria': 'mrr',    
@@ -189,15 +203,14 @@ if __name__ == "__main__":
                         }
 
     cl_params={ 'cluster':['kmeans', 'agglomerative'],
-    'evaluate':['silhouette'],
+    'evaluate':['silhouette', 'dbindex', 'derivative'],
         'linkage':['ward','single','complete','average','weighted','centroid','median'],
         'metric':['euclidean', 'cosine']}
     cl_params_list=sample_param_grid(cl_params, n_iter=3)
 
-
-    #hp_search_kge(TransE(verbose=True), param_dict_list, data, early_stopping_params, 'Gold_standard_ver2.csv', relations)
-    model=restore_model('models/TransE_new')
-    hp_search_clustering(model, relations, cl_params_list, 'TransE_new', 'Gold_standard_ver2.csv')
+    #hp_search_kge(DistMult, param_dict_list, data, early_stopping_params, 'Gold_standard_ver3.csv', relations)
+    model=restore_model('models/TransE_best_3')
+    hp_search_clustering(model, relations, cl_params_list, 'TransE_best', 'Gold_standard_ver3.csv')
 
     #df=pd.DataFrame(columns=['model', 'mr', 'mrr', 'hits@1', 'hits@10', 'hits@100']) 
 
