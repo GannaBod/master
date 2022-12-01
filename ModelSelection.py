@@ -9,35 +9,24 @@ import random
 import pickle
 import numpy as np
 import ampligraph
-from sklearn.model_selection import ParameterSampler
-
-
+from sklearn.model_selection import ParameterSampler, ParameterGrid
 from ampligraph.latent_features import TransE, ComplEx, DistMult, HolE, ConvE, ConvKB, RandomBaseline
 from ampligraph.evaluation import select_best_model_ranking
 from ampligraph.utils import save_model, restore_model
+from ampligraph.evaluation import evaluate_performance, mr_score, mrr_score, hits_at_n_score, train_test_split_no_unseen
+#from sklearn.cluster import AgglomerativeClustering, KMeans
 
-#import requests
-
-#from ampligraph.datasets import load_from_csv
-from ampligraph.evaluation import evaluate_performance
-from ampligraph.evaluation import mr_score, mrr_score, hits_at_n_score
-from ampligraph.evaluation import train_test_split_no_unseen
-
-from sklearn.cluster import AgglomerativeClustering
-from sklearn.cluster import KMeans
-
-from sklearn.metrics import silhouette_samples, silhouette_score
+#from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.metrics.cluster import adjusted_rand_score
 
 
 #import re
 from sklearn.decomposition import PCA
-
 import matplotlib.pyplot as plt
 import seaborn as sns
 from adjustText import adjust_text
-from ampligraph.discovery import find_clusters
-from ampligraph.utils import create_tensorboard_visualizations
+#from ampligraph.discovery import find_clusters
+#from ampligraph.utils import create_tensorboard_visualizations
 from clusteval import clusteval
 
 #from Models_results import load_data, prepare_data, print_evaluation
@@ -61,6 +50,10 @@ def sample_param_grid(param_grid, n_iter, regul_params=None):
             element.update({'optimizer_parameters':{'lr': 1e-3}})
 
     return dict_list
+
+def exhaustive_param_grid(param_grid, regul_params=None):
+    param_list = list(ParameterGrid(param_grid))
+    return param_list
     
 #Leave for further research section
 
@@ -118,7 +111,7 @@ def hp_search_kge(model_class, param_dict_list, data, early_stopping_params, gs,
         df=df.append({"Model": model_class, 'params': parameter_combination, 'ARS_gs': cl_result['ARS_gs'], 'N_cl_opt': cl_result['N_cl_opt'], 'Silh_best': cl_result['silh_best'], 'ARS_opt': cl_result['ARS_opt'] }, ignore_index=True)
     df.to_csv('Model_selection_kge_DistMult.csv')
 
-def hp_search_clustering(model, relations, cl_param_list, model_name, gs):
+def hp_search_clustering(model, relations, cl_param_list, pca:bool, model_name, gs):
     df=pd.DataFrame()
     gs_rels, gs_clusters=gold_st(gs, relations)
     E_gs=[]
@@ -134,35 +127,23 @@ def hp_search_clustering(model, relations, cl_param_list, model_name, gs):
     for i in sorted(prob_i, reverse=True):
         del gs_clusters[i] 
         del gs_rels[i]
+    if pca:
+      E_gs = PCA(n_components=2).fit_transform(E_gs)
     for cl_param_combination in cl_param_list:
-        ce = clusteval(cluster=cl_param_combination['cluster'], evaluate=cl_param_combination['evaluate'], linkage=cl_param_combination['linkage'], metric=cl_param_combination['metric']) 
-        c=ce.fit(E_gs)
-        #depends on the score
-        # score_table=c['score']
-        # score_max=score_table['score'].max()
-        # n_cl_opt=score_table[score_table['score']==score_max]['clusters'].values[0]
-        # silh_best=score_table['score'].max()
-        
-        #gold standard evaluation optimal
-        if cl_param_combination['cluster'] =='agglomerative':
-            print('Agglomerative')
-            clustering = AgglomerativeClustering().fit(E_gs)
-            clusters=clustering.labels_
-        else:
-            kmeans = KMeans(n_clusters=n_cl_opt, random_state=0).fit(E_gs)
-            clusters=kmeans.labels_
-        ars=adjusted_rand_score(gs_clusters, clusters)
-    #ARS_GS like in gold standard
-        n_cl_gs=len(set(gs_clusters))
-        if cl_param_combination['cluster'] =='agglomerative':
-            clustering = AgglomerativeClustering(n_clusters=n_cl_gs).fit(E_gs)
-            clusters_gs=clustering.labels_
-        else:
-            kmeans = KMeans(n_clusters=n_cl_gs, random_state=0).fit(E_gs)
-            clusters_gs=kmeans.labels_
-        ars_gs=adjusted_rand_score(gs_clusters, clusters_gs)
-        df=df.append({"Model": model_name, 'params': cl_param_combination, 'ARS_gs': ars_gs, 'N_cl_opt': n_cl_opt, 'Silh_best': silh_best, 'ARS_opt': ars }, ignore_index=True)
-    df.to_csv('Model_selection_clustering.csv')
+        try:
+          ce = clusteval(cluster=cl_param_combination['cluster'], max_clust= cl_param_combination['max_clust'], evaluate=cl_param_combination['evaluate'], linkage=cl_param_combination['linkage'], metric=cl_param_combination['metric']) 
+          c=ce.fit(E_gs)
+          clusters=c['labx']
+          n_cl_opt=len(set(clusters))
+          ars=adjusted_rand_score(gs_clusters, clusters)
+
+          df=df.append({"Model": model_name, 'params': cl_param_combination, 'ARS': ars, 'N_cl_opt': n_cl_opt }, ignore_index=True)
+        except Exception:
+          pass
+    result=df.sort_values(by=["ARS"], ascending=False).head(10)
+    result.to_csv('Model_selection_clustering.csv')
+    print(result)
+    return df
 
 
 
@@ -202,15 +183,15 @@ if __name__ == "__main__":
                           'corrupt_side':'s,o'  
                         }
 
-    cl_params={ 'cluster':['kmeans', 'agglomerative'],
+    cl_params={ 'cluster':['kmeans', 'agglomerative', 'hdbscan'], 'max_clust':[25,26,28,30],
     'evaluate':['silhouette', 'dbindex', 'derivative'],
         'linkage':['ward','single','complete','average','weighted','centroid','median'],
         'metric':['euclidean', 'cosine']}
-    cl_params_list=sample_param_grid(cl_params, n_iter=3)
+    cl_params_list=exhaustive_param_grid(cl_params)
 
     #hp_search_kge(DistMult, param_dict_list, data, early_stopping_params, 'Gold_standard_ver3.csv', relations)
     model=restore_model('models/TransE_best_3')
-    hp_search_clustering(model, relations, cl_params_list, 'TransE_best', 'Gold_standard_ver3.csv')
+    hp_search_clustering(model, relations, cl_params_list, True, 'TransE_best', 'Gold_standard_ver3.csv')
 
     #df=pd.DataFrame(columns=['model', 'mr', 'mrr', 'hits@1', 'hits@10', 'hits@100']) 
 
