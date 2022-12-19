@@ -4,6 +4,7 @@ from Gold_standard_construction import *
 from Models_results import *
 from ModelSelection import *
 from ModelSelection_clustering import *
+from Human_evaluation import *
 
 # Part I
 # - 1. Extract triples to OPIEC folder
@@ -37,3 +38,6 @@ Model_results_full()
 
 # 9. Link prediction results
 Model_results_link()
+
+#10. Human evaluation
+Human_evaluation()

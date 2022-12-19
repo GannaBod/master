@@ -85,6 +85,40 @@ def evaluate_clusters(clusters, relations, ):
         results=results.append({'Cluster': 'All', 'Correct': sum(correct)/len(correct)}, ignore_index=True)
         results.to_csv('Human evaluation_1w.csv')
 
+def Human_evaluation():
+    data, entities, relations= load_dict('Full_data_preproc')
+    model=restore_model('models/TransE_full')
+
+    #subsample relations
+    np.random.seed(1)
+    relations_sub=relations[np.random.choice(relations.shape[0], 4000, replace=False)]
+    print(relations_sub[:5])
+
+    #get and save clusters
+    clusters=get_save_clusters(model, relations_sub, 'Model_selection_clusteringTransE_2nd_best_sb1.csv')
+    
+    rel_clust=load_pkl('rel_clusters')
+    print(len(rel_clust['clusters']))
+    print(len(rel_clust['relations']))
+    evaluate_clusters(rel_clust['clusters'], rel_clust['relations'])
+
+
+#Part 2 one-word relations
+    data, entities, relations= load_dict('Full_data_preproc') #Full_data_preproc')
+    model=restore_model('models/TransE_full')
+
+    #subsample relations
+    np.random.seed(1)
+    relations=np.array(get_1w_rel(relations))
+    print(len(relations))
+    relations_sub=relations[np.random.choice(relations.shape[0], 3400, replace=False)]
+    clusters=get_save_clusters(model, relations_sub, 'Model_selection_clusteringTransE_2nd_best.csv')
+    
+    rel_clust=load_pkl('rel_clusters_1w')
+    print(len(rel_clust['clusters']))
+    print(len(rel_clust['relations']))
+    evaluate_clusters(rel_clust['clusters'], rel_clust['relations'])
+
 if __name__ == "__main__":
 
     # data, entities, relations= load_dict('Full_data_preproc') #Full_data_preproc')
@@ -117,6 +151,10 @@ if __name__ == "__main__":
     #clusters=get_save_clusters(model, relations_sub, 'Model_selection_clusteringTransE_2nd_best.csv')
     
     rel_clust=load_pkl('rel_clusters_1w')
-    print(len(rel_clust['clusters']))
-    print(len(rel_clust['relations']))
-    evaluate_clusters(rel_clust['clusters'], rel_clust['relations'])
+    df= pd.DataFrame(rel_clust)
+    print(df[df['clusters'].isin([1487, 976, 922, 1359, 1299])])
+    # clusters=rel_clust['clusters'], 
+    # rels=rel_clust['relations']
+    # print(len(rel_clust['clusters']))
+    # print(len(rel_clust['relations']))
+    # evaluate_clusters(rel_clust['clusters'], rel_clust['relations'])
