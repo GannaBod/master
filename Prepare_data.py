@@ -12,6 +12,7 @@ import numpy as np
 import re
 import nltk
 from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 nltk.download('stopwords')
 nltk.download('punkt')
 stopwords.words("english")
@@ -86,7 +87,7 @@ def prepare_data(full_data, split_ratio, preprocessed: bool):#, valid_size, test
 
     return data, entities, relations
 
-def to_dict(data, entities, relation):
+def to_dict(data, entities, relations):
     return {
         "entities": entities,
         "relations": relations,
@@ -95,23 +96,107 @@ def to_dict(data, entities, relation):
         "valid": data['valid']
     }
 
+def print_sizes(data, entities, relations):
+    print('Unique entities: ', len(entities))
+    print('Unique relations: ', len(relations))
+    print('Train set size: ', data['train'].shape)
+    print('Test set size: ', data['test'].shape)
+    print('Valid set size: ', data['valid'].shape)
+
+def descriptive_stat(data):
+    full_data=np.concatenate([data['train'], data['valid'], data['test']], 0)
+    df=pd.DataFrame(full_data)
+    print("Top-5 most frequent relations:")
+    print(df[1].value_counts().head(5))
+    print("Relations' length distribution:")
+    df['rel_length']=df[1].apply(lambda x: len(word_tokenize(x)))
+    print(df['rel_length'].value_counts())
+
+def Prepare_data_run(subset_type): #1 #2 or #3 - sb1, sb2, full
+    valid = {1, 2, 3}
+    if subset_type not in valid:
+        raise ValueError("subset_type: status must be one of %r." % valid)
+    if subset_type==1:
+        full_data=load_data('G:/My Drive/Colab Notebooks/data/OPIEC', 3) # 3 - for subset 1; 9 - for subset 2; 100 for full data
+    
+        data, entities, relations = prepare_data(full_data, 0.1, True)
+        to_pickle = to_dict(data, entities, relations)
+        save_pkl('Subset_1', to_pickle)  #Subset1 #Subset2 # Full_data
+        data, entities, relations= load_dict('Subset_1')
+        print("Subset_1:")
+    elif subset_type==2:
+        full_data=load_data('G:/My Drive/Colab Notebooks/data/OPIEC', 9) # 3 - for subset 1; 9 - for subset 2; 100 for full data
+        data, entities, relations = prepare_data(full_data, 0.1, True)
+        to_pickle = to_dict(data, entities, relations)
+        save_pkl('Subset_2', to_pickle)  #Subset1 #Subset2 # Full_data
+        data, entities, relations= load_dict('Subset_2')
+        print("Subset_2:")
+    elif subset_type==3:
+        full_data=load_data('G:/My Drive/Colab Notebooks/data/OPIEC', 100) # 3 - for subset 1; 9 - for subset 2; 100 for full data
+        data, entities, relations = prepare_data(full_data, 0.1, True)
+        to_pickle = to_dict(data, entities, relations)
+        save_pkl('Full_data', to_pickle)  #Subset1 #Subset2 # Full_data
+        data, entities, relations= load_dict('Full_data')
+        print("Full_data:")
+    print_sizes(data, entities, relations)
+    descriptive_stat(data)
 
 
 if __name__ == "__main__":
 
 ##CHOOSE THE DATA SUBSET
-    full_data=load_data('G:/My Drive/Colab Notebooks/data/OPIEC', 100)
-    print(full_data)
-    #print(full_data.columns())
+    # full_data=load_data('G:/My Drive/Colab Notebooks/data/OPIEC', 100)
+    # print(full_data)
 
-    data, entities, relations = prepare_data(full_data, 0.1, True) #, 100, 2000) #train test valid size
-    print(relations[:10])
-    to_pickle = to_dict(data, entities, relations)
-    save_pkl('Full_data_preproc', to_pickle)
+    # data, entities, relations = prepare_data(full_data, 0.1, True) #, 100, 2000) #train test valid size
+    # print(relations[:10])
+    # to_pickle = to_dict(data, entities, relations)
+    # save_pkl('Full_data_preproc', to_pickle)
+
+    # data, entities, relations= load_dict('Preprocessed')
+    # print("Subset_1:")
+    # print('Unique entities: ', len(entities))
+    # print('Unique relations: ', len(relations))
+    # print('Train set size: ', data['train'].shape)
+    # print('Test set size: ', data['test'].shape)
+    # print('Valid set size: ', data['valid'].shape)
+
+    # data, entities, relations= load_dict('Subset_9_docs_new')
+    # print("Subset_2:")
+    # print('Unique entities: ', len(entities))
+    # print('Unique relations: ', len(relations))
+    # print('Train set size: ', data['train'].shape)
+    # print('Test set size: ', data['test'].shape)
+    # print('Valid set size: ', data['valid'].shape)
+    
+    data, entities, relations= load_dict('Full_data_preproc')
+    print("Full data:")
+    print('Unique entities: ', len(entities))
+    print('Unique relations: ', len(relations))
+    print('Train set size: ', data['train'].shape)
+    print('Test set size: ', data['test'].shape)
+    print('Valid set size: ', data['valid'].shape)
+
+    print("Descriptive statistics")
+    full_data=np.concatenate([data['train'], data['valid'], data['test']], 0)
+    df=pd.DataFrame(full_data)
+    print("Top-5 most frequent relations:")
+    print(df[1].value_counts().head(5))
+    print("Relations' length distribution:")
+    df['rel_length']=df[1].apply(lambda x: len(word_tokenize(x)))
+    print(df['rel_length'].value_counts())
+
+
+
+
+
+
     # data, entities, relations=load_dict('Subset_3_docs')
     # print(relations[:5])
     # print(entities[:10])
     # #lowercase?
     # rels_preprocess=[preprocess(relation, remove_stopwords=True) for relation in relations[:10]]
     # print(rels_preprocess)
+
+
 

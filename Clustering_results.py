@@ -22,8 +22,10 @@ from ampligraph.discovery import find_clusters
 from ampligraph.utils import create_tensorboard_visualizations
 from clusteval import clusteval
 
-from Models_results import load_data, prepare_data
+from Models_results import load_data, prepare_data, clustering_results_with_params
 from Read_corpus import load_dict
+from sklearn_extra.cluster import KMedoids
+from sklearn.cluster import DBSCAN
 #put here visualization functions
 
 # with open("SubsetData", 'rb') as file:
@@ -138,6 +140,8 @@ def cluster_eval(gs_rels, model, gs_clusters):
     print('Best silhouette score =', silh_best)
 
     #kMeans clustering
+    # kmedoids = KMedoids(n_clusters=n_cl_opt, random_state=0).fit(E_gs)
+    #db = DBSCAN(eps=0.3).fit(E_gs)
     kmeans = KMeans(n_clusters=n_cl_opt, random_state=0).fit(E_gs)
     clusters=kmeans.labels_
     print(len(clusters))
@@ -154,7 +158,7 @@ def visualize(gs_rels, model, gs_clusters, clusters, model_name):
     df = pd.DataFrame({"gs_rel": gs_rels, "gs_clusters": gs_clusters, "alg_clusters":clusters,
                         "embedding1": embeddings_2d[:, 0], "embedding2": embeddings_2d[:, 1]})
 
-    fig, axes = plt.subplots(1, 2, figsize=(8, 3), sharex=True, sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(35, 10), sharex=True, sharey=True)
     axes = axes.ravel()
     x=df["embedding1"]
     y=df["embedding2"]
@@ -174,7 +178,7 @@ def visualize(gs_rels, model, gs_clusters, clusters, model_name):
         texts.append(t)
     adjust_text(texts, ax=axes[1])
     #plt.show()
-    plt.savefig('/content/drive/MyDrive/Colab Notebooks/Sessions/models 9 docs/0/'+model_name)
+    plt.savefig('Plot'+model_name)
 
 def save_results(model_name, ars, silh_best, n_cl_opt):
     results=pd.read_csv('results.csv')
@@ -192,38 +196,27 @@ def save_results(model_name, ars, silh_best, n_cl_opt):
 
 if __name__ == "__main__":
 
-#READ OR LOAD?
-    #Load data #read or load???
-    # full_data=load_data('./OPIEC_read')
-    # data, entities, relations = prepare_data(full_data, 100,2000)
-    # with open("SubsetData", 'rb') as file:
-    #     data=pickle.load(file)
-    # data['train']=data['train_set']
-    # data['test']=data['test_set']
-    # data['valid']=data['valid_set']
-    # entities=data['entities']
-    # relations=data['relations']
-    data, entities, relations=load_dict('Subset_3_docs')
 
-    #entity_id_map = {ent_name: id for id, ent_name in enumerate(entities)}
-    #relation_id_map = {rel: id for id, rel in enumerate(relations)}
+    data, entities, relations=load_dict('Preprocessed')
 
     #gs, gs_rels, gs_clusters =prepare_gold_st("Gold_standard_ver2.csv", data)
-    gs, gs_rels, gs_clusters=gold_st('rel_syns.csv', relations)
+    gs, gs_rels, gs_clusters=gold_st('Gold_standard_ver3.csv', relations)
     print_info(data, entities, relations)
 
     #for model in [model_list]
     #cluster&viz & save results
-    model_1=restore_model("G:\My Drive\Colab Notebooks\Sessions\models 9 docs\HolE_1")
+    model_1=restore_model("models/TransE_full")
 
 
     #error cause only 1 latent feature -> 
     #model_2=restore_model('./models/RandomBaseline_0') #remove None from results record
 
     #1 visualization of gold standard verbs, golden cluster labels.
-    ars, silh_best, n_cl_opt, clusters = cluster_eval(gs_rels, model_1, gs_clusters)
-    visualize(gs_rels, model_1, gs_clusters, clusters, "TransE_0")
-    save_results('TransE_0', ars, silh_best, n_cl_opt) 
+    #ars, silh_best, n_cl_opt, clusters = cluster_eval(gs_rels, model_1, gs_clusters)
+    clusters=clustering_results_with_params(model_1, 'Example', gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
+    clusters=clusters['clusters']
+    visualize(gs_rels, model_1, gs_clusters, clusters, "Example")
+    #save_results('TransE_d', ars, silh_best, n_cl_opt) 
 
     # #TODO what about diff. models and correlation - random baseline does not work for visualization
     # #can I think of my own random baseline ? -> embeddings of size like transE but not trained at all?

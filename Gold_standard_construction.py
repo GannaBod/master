@@ -11,6 +11,8 @@ import os
 import pickle
 import numpy as np
 import random
+import json
+import re
 #from Models_results import load_data
 from Read_corpus import load_dict #load_pkl
 
@@ -21,6 +23,21 @@ def get_synonyms(relation):
       for i in syn.lemmas():
           synonyms.append(i.name())
   return list(set(synonyms))
+
+def gold_st_json(path):
+  with open(path) as f:
+    gs=json.load(f)
+  gs_seed=np.array(list(gs.keys()))
+  gs_seed=[re.sub('_', ' ', rel) for rel in gs_seed]
+  gs_df=pd.DataFrame.from_dict(gs)
+#gs_df=gs_df.reset_index()
+#gs_df=gs_df.drop([1], axis=0)
+  gs_df=pd.DataFrame.transpose(gs_df)
+  gs_df=pd.DataFrame({'verb': gs_df['rp']})
+  gs_df['cluster']=np.arange(len(gs_df))
+  gs_df=gs_df.explode('verb')
+  gs_df.to_csv('rp_gold_standard.csv')
+#gs_df #.reset_index().columns#=gs_df.explode('rp')
 
 #TODO make function and reuse it evry time... or just save to the pkl file.
 
@@ -37,16 +54,16 @@ def get_synonyms(relation):
 #     break
 #print(full_data)
 
-# def get_data():
-#   data=load_pkl('SubsetData')
-#   # data['train']=data['train_set']
-#   #data['test']=data['test_set']
-#   # data['valid']=data['valid_set']
-#   # entities=data['entities']
-#   # relations=data['relations']
-#   #df=np.array(data['test'].values) #-> test triples. but relations are seen 
-#   relations=list(set(data['test'][:, 1]))
-#   return relations
+def get_data(Path):
+  data=load_dict(Path)
+  # data['train']=data['train_set']
+  #data['test']=data['test_set']
+  # data['valid']=data['valid_set']
+  # entities=data['entities']
+  # relations=data['relations']
+  #df=np.array(data['test'].values) #-> test triples. but relations are seen 
+  relations=list(set(data['test'][:, 1]))
+  return relations
 
 
 def get_1w_rel(relations):
@@ -67,7 +84,7 @@ def rel2cluster(one_w_relations, n):
   data=data.explode('synonyms')
   data=data.drop(['relation'], axis=1)
   data=data.rename({'synonyms': 'verb'}, axis=1)
-  data.to_csv('rel_clusters.csv')
+  data.to_csv('Gold_standard.csv')
 
 #only relations and clusters are used in the evaluation... -> should I revise the sentences or not?
 #def 
@@ -92,13 +109,24 @@ def rel2cluster(one_w_relations, n):
 # cluster_data.to_csv("Gold_standard.csv")
 # cluster_data
 
+def Gold_st_construction():
+  data, entities, relations=load_dict('Subset_1')
+  one_w_relations = get_1w_rel(relations)
+  rel2cluster(one_w_relations, 30)
+
+
 if __name__ == "__main__":
 
 #phase 1: get synonyms
-  #relations=get_data()
+
+  #relations=get_data('Preprocessed')
+
   data, entities, relations=load_dict('Subset_3_docs')
   one_w_relations = get_1w_rel(relations)
-  rel2cluster(one_w_relations, 30)
+  rel2cluster(one_w_relations, 30)     #GS ver 2
+
+
+  #gold_st_json("C:/Users/b-ann/Documents/UNI MANNHEIM/Master Data Science/Master Thesis/rp_canonicalisation-main/rp_canonicalisation-main/dataset/162NormalisedRP.json")
 #phase 2: get verbs and clusters dataframe
 #phase 3: retrieve trriples with these verbs
 

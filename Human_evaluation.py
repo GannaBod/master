@@ -7,6 +7,7 @@ from sklearn.decomposition import PCA
 from clusteval import clusteval
 from ampligraph.utils import save_model, restore_model
 from Prepare_data import save_pkl, load_pkl
+from Gold_standard_construction import get_1w_rel 
 
 
 def get_save_clusters(model, relations, table_path):
@@ -26,27 +27,28 @@ def get_save_clusters(model, relations, table_path):
     #     relations=np.delete(relations, i)
    
     E_gs = PCA(n_components=2, random_state=1).fit_transform(E_gs)
-    save_pkl('cluster_data', E_gs)
+    save_pkl('cluster_data_1w', E_gs)
     df=pd.read_csv(table_path)
     best_params=df.sort_values(by=['ARS'], ascending=False)['params'].iloc[0] #[1]
     best_params=eval(best_params)
     ce = clusteval(
-        cluster=best_params['cluster'], min_clust= 100, max_clust=105, evaluate=best_params['evaluate'], linkage=best_params['linkage'], metric=best_params['metric']) #in 
+        cluster=best_params['cluster'], min_clust= 2000, max_clust=2001, evaluate=best_params['evaluate'], linkage=best_params['linkage'], metric=best_params['metric']) #in 
     c=ce.fit(E_gs)
+    print(c['score'])
     clusters=c['labx']
     rel_clust={'relations':verbs, 'clusters': clusters}
-    save_pkl('rel_clusters', rel_clust)
+    save_pkl('rel_clusters_1w', rel_clust)
     return clusters
 
 
 def evaluate_clusters(clusters, relations, ):
+    random.seed(1)
     d=pd.DataFrame({'relation':relations,'cluster':clusters})
     d=d.groupby(by='cluster').agg({'relation': lambda x: ", ".join(x)})
     d['list']=d['relation'].apply(lambda x: x.split(','))
     d['length']=d['list'].apply(lambda x: len(x))
     d=d.reset_index()
-    print(d.columns)
-    print(d)
+    print(d['length'].value_counts())
 
     results=pd.DataFrame(columns=['Cluster', 'Correct'])
     correct=[]
@@ -80,30 +82,41 @@ def evaluate_clusters(clusters, relations, ):
             rel_freq=evaluation.count('y') / len(evaluation)
             correct.append(rel_freq)
             results=results.append({'Cluster':cluster, 'Correct': rel_freq}, ignore_index=True)
-    results=results.append({'Cluster': 'All', 'Correct': sum(correct)/len(correct)}, ignore_index=True)
-    results.to_csv('Human evaluation.csv')
+        results=results.append({'Cluster': 'All', 'Correct': sum(correct)/len(correct)}, ignore_index=True)
+        results.to_csv('Human evaluation_1w.csv')
 
 if __name__ == "__main__":
 
+    # data, entities, relations= load_dict('Full_data_preproc') #Full_data_preproc')
+    # model=restore_model('models/TransE_full')
+
+    # #subsample relations
+    # np.random.seed(1)
+    # relations_sub=relations[np.random.choice(relations.shape[0], 4000, replace=False)]
+    # print(relations_sub[:5])
+
+    # #get and save clusters
+
+    # clusters=get_save_clusters(model, relations_sub, 'Model_selection_clusteringTransE_2nd_best.csv')
+    
+    # rel_clust=load_pkl('rel_clusters')
+    # print(len(rel_clust['clusters']))
+    # print(len(rel_clust['relations']))
+    # evaluate_clusters(rel_clust['clusters'], rel_clust['relations'])
+
+
+##Part 2 one-word relations
     #data, entities, relations= load_dict('Full_data_preproc') #Full_data_preproc')
     #model=restore_model('models/TransE_full')
 
     #subsample relations
-    #relations_sub=relations[np.random.choice(relations.shape[0], 1000, replace=False)]
-
-    #get and save clusters
-
+    #np.random.seed(1)
+    #relations=np.array(get_1w_rel(relations))
+    #print(len(relations))
+    #relations_sub=relations[np.random.choice(relations.shape[0], 3400, replace=False)]
     #clusters=get_save_clusters(model, relations_sub, 'Model_selection_clusteringTransE_2nd_best.csv')
     
-    #result=clustering_results_with_params(model, model_name, gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
-    #clusters=load_pkl('rel_clusters')
-    #data, entitites, relations=load_dict('SubsetData_3')
-
-    #relations=['be','run','eat','do','make','enjoy']
-    #clusters=[0,0,1,1,1,0]
-    
-    rel_clust=load_pkl('rel_clusters')
+    rel_clust=load_pkl('rel_clusters_1w')
     print(len(rel_clust['clusters']))
     print(len(rel_clust['relations']))
     evaluate_clusters(rel_clust['clusters'], rel_clust['relations'])
-5
