@@ -88,11 +88,12 @@ def extract_triples_full_data(AVRO_SCHEMA_FILE, AVRO_DIRECTORY):
     print("Full data updated")
     print('Full data triples length new: {}'.format(len(full_data['triples'])))
     if i>100:
-     save_pkl("./OPIEC_read"+str(n), full_data)
+     save_pkl("./OPIEC_read/"+str(n), full_data)
      n+=1
      full_data=init_dict()
      i=0
       #break
+    save_pkl("./OPIEC_read/"+str(n), full_data)
     reader.close()
 
   #return full_data
