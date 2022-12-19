@@ -6,11 +6,11 @@ from ModelSelection import *
 from ModelSelection_clustering import *
 from Human_evaluation import *
 
-# Part I
+
 # - 1. Extract triples to OPIEC folder
 
 AVRO_SCHEMA_FILE = "./avroschema/TripleLinked.avsc" 
-AVRO_DIRECTORY="G:/My Drive/Colab Notebooks/data/OPIEC-linked-triples"
+AVRO_DIRECTORY="data"
 full_data=extract_triples_full_data(AVRO_SCHEMA_FILE, AVRO_DIRECTORY)
 
 # -2. Prepare data
