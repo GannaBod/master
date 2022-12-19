@@ -83,7 +83,7 @@ def Model_selection_clustering():
     for modelpath, model_name in [('models/TransE_best_sb1', 'TransE_best_sb1'), ('models/ComplEx_best_sb1', 'ComplEx_best_sb1'), ('models/HolE_best_sb1', 'HolE_best_sb1'), ('models/DistMult_best_sb1', 'DistMult_best_sb1'),
                                     ('models/TransE_2nd_best_sb1', 'TransE_2nd_best_sb1'), ('models/ComplEx_2nd_best_sb1', 'ComplEx_2nd_best_sb1'), ('models/HolE_2nd_best_sb1', 'HolE_2nd_best_sb1'), ('models/DistMult_2nd_best_sb1', 'DistMult_2nd_best_sb1')]:
         model=restore_model(modelpath)
-        hp_search_clustering(model, relations, cl_params_list, True, model_name, 'Gold_standard_ver3.csv')
+        hp_search_clustering(model, relations, cl_params_list, True, model_name, 'Gold_standard_manual.csv')
 
 
 
@@ -99,6 +99,6 @@ if __name__ == "__main__":
     cl_params_list=exhaustive_param_grid(cl_params)
 
     model=restore_model('models/TransE_best_9')
-    hp_search_clustering(model, relations, cl_params_list, True, 'TransE_best_9', 'Gold_standard_ver3.csv')
+    hp_search_clustering(model, relations, cl_params_list, True, 'TransE_best_9', 'Gold_standard_manual.csv')
 
 

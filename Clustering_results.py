@@ -200,7 +200,7 @@ if __name__ == "__main__":
     data, entities, relations=load_dict('Preprocessed')
 
     #gs, gs_rels, gs_clusters =prepare_gold_st("Gold_standard_ver2.csv", data)
-    gs, gs_rels, gs_clusters=gold_st('Gold_standard_ver3.csv', relations)
+    gs, gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
     print_info(data, entities, relations)
 
     #for model in [model_list]

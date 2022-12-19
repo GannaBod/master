@@ -195,7 +195,7 @@ def Model_results_baseline():
     data, entities, relations= load_dict('Subset_1')
     for model, model_name in [(TransE(verbose=True), 'TransE_bl'), (ComplEx(verbose=True), 'ComplEx_bl'), (HolE(verbose=True), 'HolE_bl'), (DistMult(verbose=True), 'DistMult_bl')]:
         train_save(model, data, model_name)
-    gs_rels, gs_clusters=gold_st('Gold_standard_ver3.csv', relations)
+    gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
     eval_baseline=pd.DataFrame()
     for model_path, model_name in [('models/TransE_bl', 'TransE_bl'), ('models/ComplEx_bl', 'ComplEx_bl'), ('models/HolE_bl', 'HolE_bl'), ('models/DistMult_bl', 'DistMult_bl')]:
         model= restore_model(model_path)
@@ -205,7 +205,7 @@ def Model_results_baseline():
 
 def Model_results_subset2():
     #train best models on bigger data
-    gs_rels, gs_clusters=gold_st('Gold_standard_ver3.csv', relations)
+    gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
     for (model_class, model_name, table_path) in [(TransE, 'TransE_best_9', 'Model_selectionTransE_best_3.csv'),(TransE, 'TransE_best_9', 'Model_selectionTransE_best_3.csv')]: #[(ComplEx, 'ComplEx_best_9', 'Model_selectionComplEx_best_3.csv'), (HolE, 'HolE_best_9', 'Model_selectionHolE_best_3.csv'), (DistMult, 'DistMult_best_9', 'Model_selectionDistMult_best_3.csv')]:#], ComplEx, HolE, DistMult]   (TransE, 'TransE_best_3', 'Model_selectionTransE_best_3.csv'), (ComplEx, 'ComplEx_best_3'),                     
        data_path='Subset_2'
        train_best_params(table_path, data_path, model_class, model_name)
@@ -213,7 +213,7 @@ def Model_results_subset2():
 
 def Model_results_full():
     data_path='Full_data'
-    gs_rels, gs_clusters=gold_st('Gold_standard_ver3.csv', relations)
+    gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
     train_best_params('Model_selectionTransE_best_3.csv', data_path, TransE, 'TransE_full')
     clustering_results_with_params(model, 'TransE_full', gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
     
