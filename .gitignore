@@ -130,7 +130,8 @@ dist
 .pnp.*
 env37
 SubsetData
-models
+models/archive
+models/lastState
 Subset_3_docs
 Subset_9_docs
 Human evaluation.csv
