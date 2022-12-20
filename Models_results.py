@@ -1,9 +1,5 @@
 import tensorflow as tf
 tf.compat.v1.disable_eager_execution()
-# device_name = tf.test.gpu_device_name()
-# if device_name != '/device:GPU:0':
-#   raise SystemError('GPU device not found')
-# print('Found GPU at: {}'.format(device_name))
 import pandas as pd
 import os
 import random
@@ -14,10 +10,6 @@ import ampligraph
 from ampligraph.latent_features import TransE, ComplEx, DistMult, HolE, ConvE, ConvKB, RandomBaseline
 from ampligraph.evaluation import select_best_model_ranking
 from ampligraph.utils import save_model, restore_model
-
-#import requests
-
-#from ampligraph.datasets import load_from_csv
 from ampligraph.evaluation import evaluate_performance
 from ampligraph.evaluation import mr_score, mrr_score, hits_at_n_score
 from ampligraph.evaluation import train_test_split_no_unseen
@@ -28,9 +20,6 @@ from clusteval import clusteval
 
 from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.metrics.cluster import adjusted_rand_score
-
-
-#import re
 from sklearn.decomposition import PCA
 
 import matplotlib.pyplot as plt
@@ -41,42 +30,10 @@ from ampligraph.utils import create_tensorboard_visualizations
 
 from Prepare_data import load_data, prepare_data#, load_dict
 from Read_corpus import load_dict
-from ModelSelection import train_best_params
+#from ModelSelection import train_best_params
 
 from sklearn_extra.cluster import KMedoids
 
-# def load_data(DATA_DIRECTORY: str):
-#     full_data=pd.DataFrame()
-#     i=0
-#     for filename in os.listdir(DATA_DIRECTORY):
-#         i+=1
-#         with open(DATA_DIRECTORY+'/'+filename, 'rb') as file:
-#             data = pickle.load(file)
-#             #why pandas? maybe numpy straight forward?
-#             df=pd.DataFrame(data['triples'])
-#         full_data=full_data.append(df)
-#         if i>3:
-#             break
-#     return full_data
-
-# def prepare_data(full_data, valid_size, test_size):
-#     X=np.array(full_data.values)
-#     data = {}
-#     data['train'], data['valid'] = train_test_split_no_unseen(X, test_size=valid_size, seed=1, allow_duplication=False) 
-#     data['train'], data['test']=train_test_split_no_unseen(data['train'], test_size=test_size, seed=1, allow_duplication=False)
-
-#     entities=np.array(list(set(full_data.values[:, 0]).union(full_data.values[:, 2])))
-#     relations=np.array(list(set(full_data.values[:, 1])))
-
-#     print('Unique entities: ', len(entities))
-#     print('Unique relations: ', len(relations))
-
-#     print('Train set size: ', data['train'].shape)
-#     print('Test set size: ', data['test'].shape)
-#     print('Valid set size: ', data['valid'].shape)
-#     print(data['train'])
-
-#     return data, entities, relations
 
 def print_evaluation(ranks):
     print('Mean Rank:', mr_score(ranks)) 
@@ -138,28 +95,6 @@ def clustering_result(model, model_name, gs_rels, gs_clusters):
     clusters=c['labx']
     n_cl_opt=len(set(clusters))
     ars=adjusted_rand_score(gs_clusters, clusters)
-    # score_table=c['score']
-    # score_max=score_table['score'].max()
-    # n_cl_opt=score_table[score_table['score']==score_max]['clusters'].values[0]
-    # silh_best=score_table['score'].max()
-    # print('Optimal number of clusters =', n_cl_opt)
-    # print('Best silhouette score =', silh_best)
-
-    ##DOES NOT MAKE SENSE -> IN CLUSTEVAL WITH CLUSTER WITH DIFF ALG
-    #kMeans clustering
-#     kmeans = KMeans(n_clusters=n_cl_opt, random_state=0).fit(E_gs)
-#     clusters=kmeans.labels_
-#     print(len(clusters))
-#     # df=pd.DataFrame({'verb':gs_rels, 'cluster': clusters})
-#     # df.to_csv('outlier.csv')
-#     #print results
-#     ars=adjusted_rand_score(gs_clusters, clusters)
-# #ARS_GS
-#     n_cl_gs=len(set(gs_clusters))
-#     #kmedoids = KMedoids(n_clusters=n_cl_opt, random_state=0).fit(E_gs)
-#     kmeans = KMeans(n_clusters=n_cl_gs, random_state=0).fit(E_gs)
-#     clusters=kmeans.labels_
-
     print("Adjusted_rand_score Agglomerative  clustering with "+str(n_cl_opt)+" clusters",(ars))
     return {'Model': model_name, 'N_cl_opt': n_cl_opt, 'ARS': ars}
 
@@ -203,19 +138,19 @@ def Model_results_baseline():
     print(eval_baseline)
     eval_baseline.to_csv("Baseline_results.csv")
 
-def Model_results_subset2():
-    #train best models on bigger data
-    gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
-    for (model_class, model_name, table_path) in [(TransE, 'TransE_best_9', 'Model_selectionTransE_best_3.csv'),(TransE, 'TransE_best_9', 'Model_selectionTransE_best_3.csv')]: #[(ComplEx, 'ComplEx_best_9', 'Model_selectionComplEx_best_3.csv'), (HolE, 'HolE_best_9', 'Model_selectionHolE_best_3.csv'), (DistMult, 'DistMult_best_9', 'Model_selectionDistMult_best_3.csv')]:#], ComplEx, HolE, DistMult]   (TransE, 'TransE_best_3', 'Model_selectionTransE_best_3.csv'), (ComplEx, 'ComplEx_best_3'),                     
-       data_path='Subset_2'
-       train_best_params(table_path, data_path, model_class, model_name)
-       clustering_results_with_params(model, 'TransE_full', gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
+# def Model_results_subset2():
+#     #train best models on bigger data
+#     gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
+#     for (model_class, model_name, table_path) in [(TransE, 'TransE_best_9', 'Model_selectionTransE_best_3.csv'),(TransE, 'TransE_best_9', 'Model_selectionTransE_best_3.csv')]: #[(ComplEx, 'ComplEx_best_9', 'Model_selectionComplEx_best_3.csv'), (HolE, 'HolE_best_9', 'Model_selectionHolE_best_3.csv'), (DistMult, 'DistMult_best_9', 'Model_selectionDistMult_best_3.csv')]:#], ComplEx, HolE, DistMult]   (TransE, 'TransE_best_3', 'Model_selectionTransE_best_3.csv'), (ComplEx, 'ComplEx_best_3'),                     
+#        data_path='Subset_2'
+#        train_best_params(table_path, data_path, model_class, model_name)
+#        clustering_results_with_params(model, 'TransE_full', gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
 
-def Model_results_full():
-    data_path='Full_data'
-    gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
-    train_best_params('Model_selectionTransE_best_3.csv', data_path, TransE, 'TransE_full')
-    clustering_results_with_params(model, 'TransE_full', gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
+# def Model_results_full():
+#     data_path='Full_data'
+#     gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
+#     train_best_params('Model_selectionTransE_best_3.csv', data_path, TransE, 'TransE_full')
+#     clustering_results_with_params(model, 'TransE_full', gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
     
 def Model_results_link():
      # 2. evaluate link prediction

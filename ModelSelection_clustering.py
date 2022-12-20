@@ -31,7 +31,8 @@ from clusteval import clusteval
 
 #from Models_results import load_data, prepare_data, print_evaluation
 from Read_corpus import load_dict
-from Models_results import clustering_result, gold_st
+from Models_results import clustering_result, gold_st, clustering_results_with_params
+from ModelSelection import train_best_params
 
 
 def exhaustive_param_grid(param_grid, regul_params=None):
@@ -84,6 +85,22 @@ def Model_selection_clustering():
                                     ('models/TransE_2nd_best_sb1', 'TransE_2nd_best_sb1'), ('models/ComplEx_2nd_best_sb1', 'ComplEx_2nd_best_sb1'), ('models/HolE_2nd_best_sb1', 'HolE_2nd_best_sb1'), ('models/DistMult_2nd_best_sb1', 'DistMult_2nd_best_sb1')]:
         model=restore_model(modelpath)
         hp_search_clustering(model, relations, cl_params_list, True, model_name, 'Gold_standard_manual.csv')
+
+def Model_results_subset2():
+    #train best models on bigger data
+    data, entities, relations= load_dict('Subset_2')
+    gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
+    for (model_class, model_name, table_path_kge, table_path_clust) in [(TransE, 'TransE_best_sb2', 'Model_selectionTransE_best_sb1.csv', 'Model_selection_clusteringTransE_2nd_best_sb1.csv'),(ComplEx, 'ComplEx_best_sb1', 'Model_selectionComplEx_best_sb1.csv','Model_selection_clusteringComplEx_best_sb1.csv')]:                 
+       data_path='Subset_2'
+       train_best_params(table_path_kge, data_path, model_class, model_name)
+       clustering_results_with_params(model, model_name, gs_rels, gs_clusters, table_path_clust)
+
+def Model_results_full():
+    data, entities, relations= load_dict('Full_data')
+    data_path='Full_data'
+    gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
+    train_best_params('Model_selectionTransE_best_3.csv', data_path, TransE, 'TransE_full')
+    clustering_results_with_params(model, 'TransE_full', gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
 
 
 

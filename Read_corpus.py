@@ -71,7 +71,7 @@ def extract_triples(reader: DataFileReader):
   
 def extract_triples_full_data(AVRO_SCHEMA_FILE, AVRO_DIRECTORY):
   full_data=init_dict()
-  n=27
+  n=0
   i=0
   for filename in sorted(os.listdir(AVRO_DIRECTORY)):
     if filename=='_SUCCESS':
