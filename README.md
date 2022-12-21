@@ -1,4 +1,5 @@
 # master
+https://drive.google.com/drive/folders/1rQr9RNYq3IQk4AXSozF7vpCBW46sI7ti?usp=sharing
 
 ##Repository for the master's thesis "Knowledge graph embeddings for semantic relation clustering"
 
