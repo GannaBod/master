@@ -1,0 +1,11 @@
+,Model,params,ARS,N_cl_opt
+108,TransE_best_9,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'single', 'max_clust': 28, 'metric': 'euclidean'}",0.0784313725490196,27.0
+106,TransE_best_9,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'single', 'max_clust': 26, 'metric': 'euclidean'}",0.07273401698569584,25.0
+138,TransE_best_9,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'centroid', 'max_clust': 28, 'metric': 'euclidean'}",0.07001195288886859,23.0
+120,TransE_best_9,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'average', 'max_clust': 25, 'metric': 'euclidean'}",0.07001195288886859,23.0
+139,TransE_best_9,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'centroid', 'max_clust': 30, 'metric': 'euclidean'}",0.07001195288886859,23.0
+137,TransE_best_9,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'centroid', 'max_clust': 26, 'metric': 'euclidean'}",0.07001195288886859,23.0
+136,TransE_best_9,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'centroid', 'max_clust': 25, 'metric': 'euclidean'}",0.07001195288886859,23.0
+126,TransE_best_9,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'average', 'max_clust': 30, 'metric': 'euclidean'}",0.07001195288886859,23.0
+124,TransE_best_9,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'average', 'max_clust': 28, 'metric': 'euclidean'}",0.07001195288886859,23.0
+122,TransE_best_9,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'average', 'max_clust': 26, 'metric': 'euclidean'}",0.07001195288886859,23.0

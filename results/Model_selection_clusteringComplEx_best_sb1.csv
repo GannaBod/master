@@ -1,0 +1,11 @@
+,Model,params,ARS,N_cl_opt
+140,ComplEx_best_3,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'median', 'max_clust': 25, 'metric': 'euclidean'}",0.02927652576572288,24.0
+52,ComplEx_best_3,"{'cluster': 'kmeans', 'evaluate': 'silhouette', 'linkage': 'median', 'max_clust': 28, 'metric': 'euclidean'}",0.02783606697785962,11.0
+9,ComplEx_best_3,"{'cluster': 'kmeans', 'evaluate': 'silhouette', 'linkage': 'single', 'max_clust': 25, 'metric': 'cosine'}",0.02783606697785962,11.0
+53,ComplEx_best_3,"{'cluster': 'kmeans', 'evaluate': 'silhouette', 'linkage': 'median', 'max_clust': 28, 'metric': 'cosine'}",0.02783606697785962,11.0
+32,ComplEx_best_3,"{'cluster': 'kmeans', 'evaluate': 'silhouette', 'linkage': 'weighted', 'max_clust': 25, 'metric': 'euclidean'}",0.026878557404007682,11.0
+121,ComplEx_best_3,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'average', 'max_clust': 25, 'metric': 'cosine'}",0.02360855888124085,22.0
+123,ComplEx_best_3,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'average', 'max_clust': 26, 'metric': 'cosine'}",0.02360855888124085,22.0
+108,ComplEx_best_3,"{'cluster': 'agglomerative', 'evaluate': 'dbindex', 'linkage': 'single', 'max_clust': 28, 'metric': 'euclidean'}",0.02360855888124085,27.0
+40,ComplEx_best_3,"{'cluster': 'kmeans', 'evaluate': 'silhouette', 'linkage': 'centroid', 'max_clust': 25, 'metric': 'euclidean'}",0.022282519322479856,11.0
+29,ComplEx_best_3,"{'cluster': 'kmeans', 'evaluate': 'silhouette', 'linkage': 'average', 'max_clust': 28, 'metric': 'cosine'}",0.022282519322479856,11.0
