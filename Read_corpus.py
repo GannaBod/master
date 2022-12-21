@@ -59,6 +59,8 @@ def extract_triples_full_data(AVRO_SCHEMA_FILE, AVRO_DIRECTORY):
   for filename in sorted(os.listdir(AVRO_DIRECTORY)):
     if filename=='_SUCCESS':
       continue
+    if filename=='full raw data link.txt':
+      continue
     i+=1
     print(filename)
     reader = DataFileReader(open(AVRO_DIRECTORY+"/"+filename, "rb"), DatumReader())
