@@ -51,7 +51,7 @@ def visualize(gs_rels, model, gs_clusters, clusters, model_name):
     x=df["embedding1"]
     y=df["embedding2"]
     sns.scatterplot(data=df, x="embedding1", y="embedding2", hue="gs_clusters", ax=axes[0])
-    axes[0].set_title('Clusters acc. to GS')
+    axes[0].set_title('Clusters acc. to algorithm')
     texts = []
     for i in range(len(x)):
         t = axes[0].text(x[i], y[i], df['gs_rel'][i], ha='center', va='center')
@@ -89,10 +89,10 @@ if __name__ == "__main__":
     gs_rels, gs_clusters =gold_st("Archive/lastDocs/outlier.csv", relations)
 
 
-    model=restore_model("models/lastState/ComplEx_preproc")
+    model=restore_model("models/lastState/HolE_pre")
     print('ok')
     cl=clustering_results_with_params(model, "ComplEx_bl", gs_rels, gs_clusters, 'Archive/Model_selection_clusteringComplEx.csv')
     clusters=cl['clusters']
-    visualize(gs_rels, model, gs_clusters, clusters, "Outlier_complEx_bl")
+    visualize(gs_rels, model, gs_clusters, clusters, "Cluster assignment with outlier")
 
     
