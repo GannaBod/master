@@ -140,5 +140,5 @@ All_data_final
 results.csv
 results_model_selection.csv
 Archive
-results
 Further research
+__pycache__
