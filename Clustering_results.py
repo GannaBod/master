@@ -99,56 +99,56 @@ def print_info(data, entities, relations):
 #     ars=adjusted_rand_score(gs_clusters, clusters)
 #     print("Adjusted_rand_score KMeans clustering with"+str(n_cl_opt)+"clusters",(ars))
 
-def cluster_eval(gs_rels, model, gs_clusters):
-    #embeddings for gold standard
-    E_gs=[]
-    #gs_clusters=[]
-    print("length gs_clusters", len(gs_clusters))
-    print("length gs_rels", len(gs_rels))
-    probl_v=[]
-    for verb in gs_rels:
-        try:
-            E_gs.append(model.get_embeddings(np.array(verb), embedding_type='relation'))
-            #gs_clusters.append()
-        except (RuntimeError, TypeError, NameError, IndexError, ValueError):
-            print(verb)
-            probl_v.append(verb)
+# def cluster_eval(gs_rels, model, gs_clusters):
+#     #embeddings for gold standard
+#     E_gs=[]
+#     #gs_clusters=[]
+#     print("length gs_clusters", len(gs_clusters))
+#     print("length gs_rels", len(gs_rels))
+#     probl_v=[]
+#     for verb in gs_rels:
+#         try:
+#             E_gs.append(model.get_embeddings(np.array(verb), embedding_type='relation'))
+#             #gs_clusters.append()
+#         except (RuntimeError, TypeError, NameError, IndexError, ValueError):
+#             print(verb)
+#             probl_v.append(verb)
             
-    E_gs=np.array(E_gs)  
-    print('Prob_v:',len(probl_v))
-    prob_i=[i for i,verb in enumerate(gs_rels) if verb in probl_v]
-    for i in sorted(prob_i, reverse=True):
-        del gs_clusters[i] 
-        del gs_rels[i]
+#     E_gs=np.array(E_gs)  
+#     print('Prob_v:',len(probl_v))
+#     prob_i=[i for i,verb in enumerate(gs_rels) if verb in probl_v]
+#     for i in sorted(prob_i, reverse=True):
+#         del gs_clusters[i] 
+#         del gs_rels[i]
 
-    #gs_clusters.remove(gs_clusters[gs_rels.index(verb)])
-    #gs_rels.remove(verb)      
-    print("E_gs:", type(E_gs))
-    print("E_gs shape:", E_gs.shape)
-    print("length gs_clusters", len(gs_clusters))
-    #E_gs=model.get_embeddings(np.array(gs_rels), embedding_type='relation')
-    # silhouette_avg = silhouette_score(E_gs, clusters)
-    # print("For n_clusters = 5, the average silhouette_score on GS is :", silhouette_avg)
+#     #gs_clusters.remove(gs_clusters[gs_rels.index(verb)])
+#     #gs_rels.remove(verb)      
+#     print("E_gs:", type(E_gs))
+#     print("E_gs shape:", E_gs.shape)
+#     print("length gs_clusters", len(gs_clusters))
+#     #E_gs=model.get_embeddings(np.array(gs_rels), embedding_type='relation')
+#     # silhouette_avg = silhouette_score(E_gs, clusters)
+#     # print("For n_clusters = 5, the average silhouette_score on GS is :", silhouette_avg)
 
-    ce = clusteval(evaluate='silhouette')
-    c=ce.fit(E_gs)
-    score_table=c['score']
-    score_max=score_table['score'].max()
-    n_cl_opt=score_table[score_table['score']==score_max]['clusters'].values[0]
-    silh_best=score_table['score'].max()
-    print('Optimal number of clusters =', n_cl_opt)
-    print('Best silhouette score =', silh_best)
+#     ce = clusteval(evaluate='silhouette')
+#     c=ce.fit(E_gs)
+#     score_table=c['score']
+#     score_max=score_table['score'].max()
+#     n_cl_opt=score_table[score_table['score']==score_max]['clusters'].values[0]
+#     silh_best=score_table['score'].max()
+#     print('Optimal number of clusters =', n_cl_opt)
+#     print('Best silhouette score =', silh_best)
 
-    #kMeans clustering
-    # kmedoids = KMedoids(n_clusters=n_cl_opt, random_state=0).fit(E_gs)
-    #db = DBSCAN(eps=0.3).fit(E_gs)
-    kmeans = KMeans(n_clusters=n_cl_opt, random_state=0).fit(E_gs)
-    clusters=kmeans.labels_
-    print(len(clusters))
-    #print results
-    ars=adjusted_rand_score(gs_clusters, clusters)
-    print("Adjusted_rand_score KMeans clustering with"+str(n_cl_opt)+"clusters",(ars))
-    return ars, silh_best, n_cl_opt, clusters
+#     #kMeans clustering
+#     # kmedoids = KMedoids(n_clusters=n_cl_opt, random_state=0).fit(E_gs)
+#     #db = DBSCAN(eps=0.3).fit(E_gs)
+#     kmeans = KMeans(n_clusters=n_cl_opt, random_state=0).fit(E_gs)
+#     clusters=kmeans.labels_
+#     print(len(clusters))
+#     #print results
+#     ars=adjusted_rand_score(gs_clusters, clusters)
+#     print("Adjusted_rand_score KMeans clustering with"+str(n_cl_opt)+"clusters",(ars))
+#     return ars, silh_best, n_cl_opt, clusters
 
 def visualize(gs_rels, model, gs_clusters, clusters, model_name):
     E_gs=model.get_embeddings(np.array(gs_rels), embedding_type='relation')
@@ -199,13 +199,13 @@ if __name__ == "__main__":
 
     data, entities, relations=load_dict('Preprocessed')
 
-    #gs, gs_rels, gs_clusters =prepare_gold_st("Gold_standard_ver2.csv", data)
-    gs, gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
+    gs, gs_rels, gs_clusters =gold_st("Gold_standard_ver2.csv", data)
+    #gs, gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
     print_info(data, entities, relations)
 
     #for model in [model_list]
     #cluster&viz & save results
-    model_1=restore_model("models/TransE_full")
+    model_1=restore_model("models/TransE_bl")
 
 
     #error cause only 1 latent feature -> 
@@ -213,9 +213,13 @@ if __name__ == "__main__":
 
     #1 visualization of gold standard verbs, golden cluster labels.
     #ars, silh_best, n_cl_opt, clusters = cluster_eval(gs_rels, model_1, gs_clusters)
+
+# ############################
     clusters=clustering_results_with_params(model_1, 'Example', gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
     clusters=clusters['clusters']
     visualize(gs_rels, model_1, gs_clusters, clusters, "Example")
+
+
     #save_results('TransE_d', ars, silh_best, n_cl_opt) 
 
     # #TODO what about diff. models and correlation - random baseline does not work for visualization
@@ -228,7 +232,12 @@ if __name__ == "__main__":
     # model_3=restore_model('./models/ComplEx_0')
 
     # ars3, silh_best3, n_cl_opt3, clusters3 = cluster_eval(gs_rels, model_3, gs_clusters)
-    # visualize(gs_rels, model_3, gs_clusters, clusters, 'ComplEx0')
+    
+    
+    #clusters=clustering_results_with_params(model_1, 'TransE_bl', gs_rels, gs_clusters, 'Archive/Model_selection_clusteringTransE.csv')['clusters']
+    #visualize(gs_rels, model_1, gs_clusters, clusters, 'TransE_bl')
+    
+    
     # save_results('ComplEx_0', ars3, silh_best3, n_cl_opt3) 
     # ##4
     # model_4=restore_model('./models/HolE_0')

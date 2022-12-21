@@ -1,3 +1,6 @@
+## To run the code, make sure AVRO_DIRECTORY is set to the path, where data is stored.
+
+
 from Read_corpus import *
 from Prepare_data import *
 from Gold_standard_construction import *
@@ -23,7 +26,7 @@ from Human_evaluation import *
 #Model_results_baseline()
 
 # # 5. Model selection - KGE
-#Model_selection()  # TODO - check
+#Model_selection() 
 
 
 # # 6. Model selection - Clustering

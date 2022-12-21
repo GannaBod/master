@@ -132,6 +132,7 @@ env37
 SubsetData
 models/archive
 models/lastState
+models/TransE_bl
 Subset_3_docs
 Subset_9_docs
 Human evaluation.csv

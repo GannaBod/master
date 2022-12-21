@@ -1,5 +1,4 @@
 ###CONVERTS AVRO DATA TO TRIPLES IN PKL FILES AND SAVE IN ./OPIEC_read
-#triples and sentences are saved
 
 from avro.datafile import DataFileReader
 from avro.io import DatumReader
@@ -27,9 +26,6 @@ def init_dict():
   return dictnr
 
 def extract_triples(reader: DataFileReader):
-  # subjects=[]
-  # relations=[]
-  # objects=[]
   sentences=[]
   triples=[]
 
@@ -38,9 +34,6 @@ def extract_triples(reader: DataFileReader):
     relation=[]
     t_object=[]
     sentence=[]
-    #t_triple=[]
-    #print(i)
-
     for i, element in enumerate(triple['subject']):
       subject.append(triple['subject'][i]['lemma'])
     for i, element in enumerate(triple['relation']):
@@ -49,24 +42,14 @@ def extract_triples(reader: DataFileReader):
       if triple['object'][i]['lemma'] is None:
          t_object.append("!None!")
       else: t_object.append(triple['object'][i]['lemma'])
-    # objects.append(" ".join(t_object))
-    #t_triple=((" ".join(subject)), (" ".join(t_object)), (" ".join(relation)))
     if "!None!" in (subject or relation or t_object):
       continue
-    t_triple=[(" ".join(subject)), (" ".join(relation)),  (" ".join(t_object))]
-    # subjects.append(" ".join(subject))
-    # relations.append(" ".join(relation))
-    # objects.append(" ".join(t_object))
-    
+    t_triple=[(" ".join(subject)), (" ".join(relation)),  (" ".join(t_object))]    
     triples.append(t_triple)
-    
     one_sent=triple['sentence_linked']
     for i, token in enumerate(one_sent['tokens']):
       sentence.append(token['word'])
-    sentences.append(" ".join(sentence))
-    #break
-  #print(triples)
-    
+    sentences.append(" ".join(sentence))    
   return {'triples': triples, 'sentences':sentences}
   
 def extract_triples_full_data(AVRO_SCHEMA_FILE, AVRO_DIRECTORY):
@@ -76,8 +59,6 @@ def extract_triples_full_data(AVRO_SCHEMA_FILE, AVRO_DIRECTORY):
   for filename in sorted(os.listdir(AVRO_DIRECTORY)):
     if filename=='_SUCCESS':
       continue
-    #print(full_data)
-    #print('Full data triples length: {}'.format(len(full_data['triples'])))
     i+=1
     print(filename)
     reader = DataFileReader(open(AVRO_DIRECTORY+"/"+filename, "rb"), DatumReader())
@@ -92,11 +73,9 @@ def extract_triples_full_data(AVRO_SCHEMA_FILE, AVRO_DIRECTORY):
      n+=1
      full_data=init_dict()
      i=0
-      #break
-    save_pkl("./OPIEC_read/"+str(n), full_data)
+    #save_pkl("./OPIEC_read/"+str(n), full_data)
     reader.close()
 
-  #return full_data
 if __name__ == "__main__":
 
   AVRO_SCHEMA_FILE = "./avroschema/TripleLinked.avsc"

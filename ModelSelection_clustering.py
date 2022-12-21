@@ -1,8 +1,4 @@
 import tensorflow as tf
-# device_name = tf.test.gpu_device_name()
-# if device_name != '/device:GPU:0':
-#   raise SystemError('GPU device not found')
-# print('Found GPU at: {}'.format(device_name))
 import pandas as pd
 import os
 import random
@@ -14,22 +10,12 @@ from ampligraph.latent_features import TransE, ComplEx, DistMult, HolE, ConvE, C
 from ampligraph.evaluation import select_best_model_ranking
 from ampligraph.utils import save_model, restore_model
 from ampligraph.evaluation import evaluate_performance, mr_score, mrr_score, hits_at_n_score, train_test_split_no_unseen
-#from sklearn.cluster import AgglomerativeClustering, KMeans
-
-#from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.metrics.cluster import adjusted_rand_score
-
-
-#import re
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import seaborn as sns
 from adjustText import adjust_text
-#from ampligraph.discovery import find_clusters
-#from ampligraph.utils import create_tensorboard_visualizations
 from clusteval import clusteval
-
-#from Models_results import load_data, prepare_data, print_evaluation
 from Read_corpus import load_dict
 from Models_results import clustering_result, gold_st, clustering_results_with_params
 from ModelSelection import train_best_params
@@ -101,8 +87,6 @@ def Model_results_full():
     gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
     train_best_params('Model_selectionTransE_best_3.csv', data_path, TransE, 'TransE_full')
     clustering_results_with_params(model, 'TransE_full', gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
-
-
 
 
 

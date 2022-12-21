@@ -1,12 +1,11 @@
 import tensorflow as tf
-tf.compat.v1.disable_eager_execution()
+#tf.compat.v1.disable_eager_execution()
 import pandas as pd
 import os
 import random
 import pickle
 import numpy as np
 import ampligraph
-
 from ampligraph.latent_features import TransE, ComplEx, DistMult, HolE, ConvE, ConvKB, RandomBaseline
 from ampligraph.evaluation import select_best_model_ranking
 from ampligraph.utils import save_model, restore_model
@@ -27,11 +26,8 @@ import seaborn as sns
 from adjustText import adjust_text
 from ampligraph.discovery import find_clusters
 from ampligraph.utils import create_tensorboard_visualizations
-
-from Prepare_data import load_data, prepare_data#, load_dict
+from Prepare_data import load_data, prepare_data
 from Read_corpus import load_dict
-#from ModelSelection import train_best_params
-
 from sklearn_extra.cluster import KMedoids
 
 
@@ -42,12 +38,10 @@ def print_evaluation(ranks):
     print('Hits@10:', hits_at_n_score(ranks, 10))
     print('Hits@100:', hits_at_n_score(ranks, 100))
 
-#TODO clean code from not my comments
 
-def train_save(model, data, model_name):#, early_stopping_params):
+def train_save(model, data, model_name):
     model.fit(data['train'],                                      
             early_stopping=False),                          
-            #early_stopping_params=early_stopping_params) 
     save_model(model, 'models/'+model_name)
 
 def evaluate_link(model, data, model_name, entities_subset: None):
@@ -59,9 +53,6 @@ def evaluate_link(model, data, model_name, entities_subset: None):
     print_evaluation(ranks)
     return {'model': model_name, 'mr': mr_score(ranks), 'mrr': mrr_score(ranks), 'hits@1': hits_at_n_score(ranks, 1), 'hits@10': hits_at_n_score(ranks, 10), 'hits@100': hits_at_n_score(ranks, 100)}
 
-#TODO save all models and present all evaluation results in a table
-#for model in list[] ...
-#print(df)
 
 def gold_st(DOC_PATH, relations):
     gs=pd.read_csv(DOC_PATH)
@@ -74,7 +65,6 @@ def gold_st(DOC_PATH, relations):
     print("Gold standard relations number:",  len(gs_rels))
     return gs_rels, gs_clusters
 
-#def link_prediction(model):
 def clustering_result(model, model_name, gs_rels, gs_clusters):
     E_gs=[]
     probl_v=[]
@@ -138,6 +128,7 @@ def Model_results_baseline():
     print(eval_baseline)
     eval_baseline.to_csv("Baseline_results.csv")
 
+# ##problem was here  - TODO delete
 # def Model_results_subset2():
 #     #train best models on bigger data
 #     gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
@@ -153,7 +144,7 @@ def Model_results_baseline():
 #     clustering_results_with_params(model, 'TransE_full', gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
     
 def Model_results_link():
-     # 2. evaluate link prediction
+     # evaluate link prediction performance
     link_pr_result=pd.DataFrame()
     data, entities, relations= load_dict('Subset_1')
     for (modelpath, model_name) in [("models/TransE_bl",'TransE_bl'), ("models/ComplEx_bl",'ComplEx_bl'), ("models/HolE_bl", 'HolE_bl'), ("models/DistMult_bl", 'DistMult_bl'),
@@ -169,45 +160,29 @@ def Model_results_link():
 
 if __name__ == "__main__":
 # 1. train and save, evaluate default with default clustering. 
+    data, entities, relations= load_dict('Subset_1')
+    for model, model_name in [(TransE(verbose=True), 'TransE_bl'), (ComplEx(verbose=True), 'ComplEx_bl'), (HolE(verbose=True), 'HolE_bl'), (DistMult(verbose=True), 'DistMult_bl')]:
+        train_save(model, data, model_name)
+    gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
+    eval_baseline=pd.DataFrame()
+    for model_path, model_name in [('models/TransE_bl', 'TransE_bl'), ('models/ComplEx_bl', 'ComplEx_bl'), ('models/HolE_bl', 'HolE_bl'), ('models/DistMult_bl', 'DistMult_bl')]:
+        model= restore_model(model_path)
+        eval_baseline=eval_baseline.append(clustering_result (model, model_name, gs_rels, gs_clusters), ignore_index=True)
+    print(eval_baseline)
+    eval_baseline.to_csv("Baseline_results.csv")
 
 
-    #data, entities, relations= load_dict('Subset_3_docs_new')
-    data, entities, relations= load_dict('Full_data_preproc')
+    #2 . evaluate link prediction
+    link_pr_result=pd.DataFrame()
+    transe=restore_model("models/TransE_preproc")
+    complex=restore_model("models/ComplEx_preproc")
+    hole=restore_model("models/HolE_pre")
+    distmult=restore_model("models/DistMult_pre")
 
-    #gs_rels, gs_clusters=gold_st('Gold_standard_ver3.csv', relations)
-
-    # #evaluate default models
-    # eval_baseline=pd.DataFrame()
-    # for model_path, model_name in [('models/TransE_preproc', 'TransE_bl'), ('models/ComplEx_preproc', 'ComplEx_bl'), ('models/HolE_pre', 'HolE_bl'), ('models/DistMult_pre', 'DistMult_bl')]:
-    #     model= restore_model(model_path)
-    #     eval_baseline=eval_baseline.append(clustering_result (model, model_name, gs_rels, gs_clusters), ignore_index=True)
-    # print(eval_baseline)
-    # eval_baseline.to_csv("Baseline_results.csv")
-
-    # model=restore_model("models/TransE_full")
-    # clustering_results_with_params(model, 'TransE_full', gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
-
-
-    #
-    #model=TransE(verbose=True)
-    #train_save(model, data, "TransE_preproc", early_stopping_params)
-
-
-    #model=restore_model("models/DistMult_pre")
-    #result=clustering_result(model, 'DistMult_default', gs_rels, gs_clusters)
-    #print(result)
-
-    # 2. evaluate link prediction
-    #link_pr_result=pd.DataFrame()
-    #transe=restore_model("models/TransE_preproc")
-    # complex=restore_model("models/ComplEx_preproc")
-    # hole=restore_model("models/HolE_pre")
-    # distmult=restore_model("models/DistMult_pre")
-
-    # for (model, model_name) in [(transe,'TransE_d')]: #,(complex,'ComplEx_d'), (hole, 'HolE_d'), (distmult, 'DistMult_d')]:
-    #     result=evaluate_link(model, data, model_name)
-    #     link_pr_result=link_pr_result.append(result, ignore_index=True)
-    #     link_pr_result.to_csv('Link_prediction_result.csv')    
+    for (model, model_name) in [(transe,'TransE_d')]: #,(complex,'ComplEx_d'), (hole, 'HolE_d'), (distmult, 'DistMult_d')]:
+        result=evaluate_link(model, data, model_name)
+        link_pr_result=link_pr_result.append(result, ignore_index=True)
+    link_pr_result.to_csv('Link_prediction_result.csv')    
 
     model=restore_model('models/TransE_full')
     random.seed(1)
