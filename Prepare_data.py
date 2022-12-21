@@ -87,14 +87,14 @@ def Prepare_data_run():
     to_pickle = to_dict(data, entities, relations)
     save_pkl('Subset_1', to_pickle)  #Subset1 #Subset2 # Full_data
     data, entities, relations= load_dict('Subset_1')
-    print("Subset_1:")
+ 
 
     full_data=load_data('OPIEC_read', 9) # 3 - for subset 1; 9 - for subset 2; 100 for full data
     data, entities, relations = prepare_data(full_data, 0.1, True)
     to_pickle = to_dict(data, entities, relations)
     save_pkl('Subset_2', to_pickle)  #Subset1 #Subset2 # Full_data
     data, entities, relations= load_dict('Subset_2')
-    print("Subset_2:")
+
 
     full_data=load_data('OPIEC_read', 100) # 3 - for subset 1; 9 - for subset 2; 100 for full data
     data, entities, relations = prepare_data(full_data, 0.1, True)
