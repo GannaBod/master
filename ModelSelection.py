@@ -139,24 +139,4 @@ def Model_selection():
 
 
 if __name__ == "__main__":
-    #set_entity_threshold(2200000)
-
-    data, entities, relations= load_dict('Subset_1')
-    param_grid = {
-                    "batches_count": [100],
-                    "seed": [0],
-                    "epochs": [20, 50, 100],
-                    "k": [100, 200],
-                    "eta": [1, 5, 10],
-                    "loss": ["pairwise", 'nll', 'absolute_margin', 'multiclass_nll', 'self_adversarial'],
-                    "optimizer": ["adam", 'adagrad','sgd'],
-                    "initializer":['normal', 'uniform', 'xavier'],
-                    "verbose": [True]
-                }
-    regul_params ={"p": [1,2,3], "lambda": [1e-3, 1e-5]}
-    param_dict_list=sample_param_grid(param_grid, 7, regul_params)
-
-    for (model, model_name) in [(TransE, 'TransE_best_sb1'), (ComplEx, 'ComplEx_best_sb1'), (HolE, 'HolE_best_sb1'), (DistMult, 'DistMult_best_sb1')]:
-        hp_search_kge(model, model_name, param_dict_list, data, 'Gold_standard_manual.csv', relations)
-    for (table_path, model_class, model_name) in [('results/Model_selectionTransE_best_sb1.csv', TransE, 'TransE_2nd_best_sb1'), ('results/Model_selectionComplEx_best_sb1.csv', ComplEx, 'ComplEx_2nd_best_sb1'), ('results/Model_selectionHolE_best_sb1.csv', HolE, 'HolE_2nd_best_sb1'), ('results/Model_selectionDistMult_best_sb1.csv', DistMult, 'DistMult_2nd_best_sb1')]:
-        second_best(table_path, 'Subset_1', model_class, model_name)
+    Model_selection()
