@@ -3,24 +3,37 @@
 ##Repository for the master's thesis "Knowledge graph embeddings for semantic relation clustering"
 
 #Abstract
-This master's thesis investigates the usage of knowledge graph embedding for semantic relation clustering. The open information extraction corpus (OPIEC) serves...
+This master’s thesis investigates the usage of knowledge graph embedding (KGE’s) for semantic relation clustering. I analysed the performance of 4 knowledge graph embedding models: TransE, ComplEx, HolE and DistMult in relation clustering of the open information extraction corpus. In my experiments, I performed a random hyperparameter search for KGE model selection and an exhaustive search of clustering model selection. The results showed poor performance in
+both stages of evaluation: on the manually constructed gold standard and human evaluation of 25 random sampled clusters. I discussed the possible reasons for the low efficiency of the suggested pipeline for the given task and suggested the directions for future work.
 
 #Data
-OPIEC corpus can be loaded from ...
-In my experiments, I used OPIEK-linked-triples
+OPIEC corpus can be loaded from https://drive.google.com/drive/folders/1c3yMKLF7fGjIKjwvj_sQ0icRA02m_gzR?usp=sharing
+
 
 #Code execution
 
-The code requires python 3.7 and not higher. 
+The code requires python 3.7.
 
-To run the code as described in the thesis, please, install dependencies with pip install -r requirements.txt command and then run main.py file
+To run the code as described in the thesis:
+1. install dependencies with 
+pip install -r requirements.txt 
+command 
+2. download the full data in the folder "/data"
+3. run main.py file
+
+
+Already trained models can be downloaded from https://drive.google.com/drive/folders/1Kws7nfF2xDWs7OavhnBy7XKBC3QhBEUq?usp=sharing
+
+
+The project with the full results and models - this is how the project folder looks like when the code is finished can be found under:
+https://drive.google.com/drive/folders/1KmJzU2y1U3dJ7MkNeaOnquXu71qyghHh?usp=sharing
+
 
 #Script description
 
 main.py - file from which the whole experiment work described in thesis can be replicated.
-Required files are:
-1. "Gold_standard_manual.csv" since it was uploaded after manual inspection.
-2. OPIEC-linked triples stored in data folder or the path to the triple files has to bee inserted in main.py in the line ...
+Once launched, it executes all code with various models and training procedure. 
+
 
 Read_corpus.py
 The script read the OPIEC-linked-triples data stored in AVRO_DIRECTORY and extracts necessary data, such as lemmatized version of the triple (subject, relation, object). The script writes all the data to files in "OPIEC_read" directory.
@@ -39,6 +52,12 @@ Model_selection.py
 Script performs random search over hyperparameter grid and the function "hp_search_kge", first, trains models for each of the combination of parameters and then, trains and saved model with the best performance on gold standard.
 
 Model_selection_clustering.py
-First, the script performs exhaustive search over hyperparameter grif for clustering algorithm. Then, the saved KGE models are restored and the clustering for each of the hyperparameter values is performed and evaluated on gold standard.
+First, the script performs exhaustive search over hyperparameter grid for clustering algorithm. Then, the saved KGE models are restored and the clustering for each of the hyperparameter values is performed and evaluated on gold standard.
+
+Human evaluation.py
+While running the script, the user will be asked to evaluate the clusters of the TransE_full model.
+
+Visualize.py
+The script provides functions for plotting embeddings in 2D together with labeled relations.
 
 
