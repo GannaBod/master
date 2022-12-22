@@ -1,4 +1,3 @@
-#load clusters.labels_ list from pickle file
 import pandas as pd
 import numpy as np
 import random
@@ -10,7 +9,7 @@ from Prepare_data import save_pkl, load_pkl
 from Gold_standard_construction import get_1w_rel 
 
 
-def get_save_clusters(model, relations, table_path):
+def get_save_clusters(model, relations, table_path, filter:bool):
     E_gs=[]
     probl_v=[]
     verbs=[]
@@ -21,13 +20,10 @@ def get_save_clusters(model, relations, table_path):
         except (RuntimeError, TypeError, NameError, IndexError, ValueError):
             probl_v.append(verb)
     E_gs=np.array(E_gs)  
-    # prob_i=[i for i,verb in enumerate(relations) if verb in probl_v]
     print("Verbs not found in training data:", (len(relations)-len(verbs)))
-    # for i in sorted(prob_i, reverse=True):
-    #     relations=np.delete(relations, i)
    
     E_gs = PCA(n_components=2, random_state=1).fit_transform(E_gs)
-    save_pkl('cluster_data_1w', E_gs)
+    #save_pkl('cluster_data_1w', E_gs)
     df=pd.read_csv(table_path)
     best_params=df.sort_values(by=['ARS'], ascending=False)['params'].iloc[0] #[1]
     best_params=eval(best_params)
@@ -37,11 +33,14 @@ def get_save_clusters(model, relations, table_path):
     print(c['score'])
     clusters=c['labx']
     rel_clust={'relations':verbs, 'clusters': clusters}
-    save_pkl('rel_clusters_1w', rel_clust)
+    if filter:
+        save_pkl('rel_clusters_1w', rel_clust)
+    else:
+        save_pkl('rel_clusters', rel_clust)
     return clusters
 
 
-def evaluate_clusters(clusters, relations, ):
+def evaluate_clusters(clusters, relations, filter:bool):
     random.seed(1)
     d=pd.DataFrame({'relation':relations,'cluster':clusters})
     d=d.groupby(by='cluster').agg({'relation': lambda x: ", ".join(x)})
@@ -83,10 +82,13 @@ def evaluate_clusters(clusters, relations, ):
             correct.append(rel_freq)
             results=results.append({'Cluster':cluster, 'Correct': rel_freq}, ignore_index=True)
         results=results.append({'Cluster': 'All', 'Correct': sum(correct)/len(correct)}, ignore_index=True)
-        results.to_csv('Human evaluation_1w.csv')
+        if filter:
+            results.to_csv('Human evaluation_1w.csv')
+        else:
+            results.to_csv('Human evaluation.csv')
 
 def Human_evaluation():
-    data, entities, relations= load_dict('Full_data_preproc')
+    data, entities, relations= load_dict('Full_data')
     model=restore_model('models/TransE_full')
 
     #subsample relations
@@ -95,16 +97,16 @@ def Human_evaluation():
     print(relations_sub[:5])
 
     #get and save clusters
-    clusters=get_save_clusters(model, relations_sub, 'Model_selection_clusteringTransE_2nd_best_sb1.csv')
+    clusters=get_save_clusters(model, relations_sub, 'results/Model_selection_clusteringTransE_2nd_best_sb1.csv', False)
     
     rel_clust=load_pkl('rel_clusters')
     print(len(rel_clust['clusters']))
     print(len(rel_clust['relations']))
-    evaluate_clusters(rel_clust['clusters'], rel_clust['relations'])
+    evaluate_clusters(rel_clust['clusters'], rel_clust['relations'], False)
 
 
 #Part 2 one-word relations
-    data, entities, relations= load_dict('Full_data_preproc') #Full_data_preproc')
+    data, entities, relations= load_dict('Full_data') #Full_data_preproc')
     model=restore_model('models/TransE_full')
 
     #subsample relations
@@ -112,49 +114,12 @@ def Human_evaluation():
     relations=np.array(get_1w_rel(relations))
     print(len(relations))
     relations_sub=relations[np.random.choice(relations.shape[0], 3400, replace=False)]
-    clusters=get_save_clusters(model, relations_sub, 'Model_selection_clusteringTransE_2nd_best.csv')
+    clusters=get_save_clusters(model, relations_sub, 'results/Model_selection_clusteringTransE_2nd_best.csv', True)
     
     rel_clust=load_pkl('rel_clusters_1w')
     print(len(rel_clust['clusters']))
     print(len(rel_clust['relations']))
-    evaluate_clusters(rel_clust['clusters'], rel_clust['relations'])
+    evaluate_clusters(rel_clust['clusters'], rel_clust['relations'], True)
 
 if __name__ == "__main__":
-
-    # data, entities, relations= load_dict('Full_data_preproc') #Full_data_preproc')
-    # model=restore_model('models/TransE_full')
-
-    # #subsample relations
-    # np.random.seed(1)
-    # relations_sub=relations[np.random.choice(relations.shape[0], 4000, replace=False)]
-    # print(relations_sub[:5])
-
-    # #get and save clusters
-
-    # clusters=get_save_clusters(model, relations_sub, 'Model_selection_clusteringTransE_2nd_best.csv')
-    
-    # rel_clust=load_pkl('rel_clusters')
-    # print(len(rel_clust['clusters']))
-    # print(len(rel_clust['relations']))
-    # evaluate_clusters(rel_clust['clusters'], rel_clust['relations'])
-
-
-##Part 2 one-word relations
-    #data, entities, relations= load_dict('Full_data_preproc') #Full_data_preproc')
-    #model=restore_model('models/TransE_full')
-
-    #subsample relations
-    #np.random.seed(1)
-    #relations=np.array(get_1w_rel(relations))
-    #print(len(relations))
-    #relations_sub=relations[np.random.choice(relations.shape[0], 3400, replace=False)]
-    #clusters=get_save_clusters(model, relations_sub, 'Model_selection_clusteringTransE_2nd_best.csv')
-    
-    rel_clust=load_pkl('rel_clusters_1w')
-    df= pd.DataFrame(rel_clust)
-    print(df[df['clusters'].isin([1487, 976, 922, 1359, 1299])])
-    # clusters=rel_clust['clusters'], 
-    # rels=rel_clust['relations']
-    # print(len(rel_clust['clusters']))
-    # print(len(rel_clust['relations']))
-    # evaluate_clusters(rel_clust['clusters'], rel_clust['relations'])
+    Human_evaluation()
