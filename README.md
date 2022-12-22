@@ -15,9 +15,9 @@ OPIEC corpus can be loaded from https://drive.google.com/drive/folders/1c3yMKLF7
 The code requires python 3.7.
 
 To run the code as described in the thesis:
-1. install dependencies with 
-*pip install -r requirements.txt* 
-command 
+1. install dependencies with command 
+`pip install -r requirements.txt`
+
 2. download the full data in the folder "/data"
 3. run main.py file
 
