@@ -1,24 +1,10 @@
-import tensorflow as tf
 import pandas as pd
-import os
 import random
-import pickle
 import numpy as np
-import ampligraph
-from sklearn.model_selection import ParameterSampler, ParameterGrid
-from ampligraph.latent_features import TransE, ComplEx, DistMult, HolE, ConvE, ConvKB, RandomBaseline
-from ampligraph.evaluation import select_best_model_ranking
-from ampligraph.utils import save_model, restore_model
-from ampligraph.evaluation import evaluate_performance, mr_score, mrr_score, hits_at_n_score, train_test_split_no_unseen
-from sklearn.metrics.cluster import adjusted_rand_score
-from sklearn.decomposition import PCA
-import matplotlib.pyplot as plt
-import seaborn as sns
-from adjustText import adjust_text
-from clusteval import clusteval
+from sklearn.model_selection import ParameterSampler
+from ampligraph.latent_features import TransE, ComplEx, DistMult, HolE
 from Read_corpus import load_dict
 from Models_results import clustering_result, gold_st, train_save
-from ampligraph.latent_features import set_entity_threshold
 
 def sample_param_grid(param_grid, n_iter, regul_params=None):
     rng = np.random.RandomState(1)
