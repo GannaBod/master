@@ -16,6 +16,8 @@ def load_data(DATA_DIRECTORY: str, n: int):
     full_data=pd.DataFrame()
     i=0
     for filename in os.listdir(DATA_DIRECTORY):
+        if filename=='Full OPIEC_read data.txt':
+            continue
         i+=1
         with open(DATA_DIRECTORY+'/'+filename, 'rb') as file:
             data = pickle.load(file)
@@ -85,21 +87,21 @@ def Prepare_data_run():
 
     data, entities, relations = prepare_data(full_data, 0.1, True)
     to_pickle = to_dict(data, entities, relations)
-    save_pkl('Subset_1', to_pickle)  #Subset1 #Subset2 # Full_data
+    save_pkl('Subset_1', to_pickle)  
     data, entities, relations= load_dict('Subset_1')
  
 
     full_data=load_data('OPIEC_read', 9) # 3 - for subset 1; 9 - for subset 2; 100 for full data
     data, entities, relations = prepare_data(full_data, 0.1, True)
     to_pickle = to_dict(data, entities, relations)
-    save_pkl('Subset_2', to_pickle)  #Subset1 #Subset2 # Full_data
+    save_pkl('Subset_2', to_pickle)  
     data, entities, relations= load_dict('Subset_2')
 
 
     full_data=load_data('OPIEC_read', 100) # 3 - for subset 1; 9 - for subset 2; 100 for full data
     data, entities, relations = prepare_data(full_data, 0.1, True)
     to_pickle = to_dict(data, entities, relations)
-    save_pkl('Full_data', to_pickle)  #Subset1 #Subset2 # Full_data
+    save_pkl('Full_data', to_pickle) 
     data, entities, relations= load_dict('Full_data')
     print("Full_data:")
     print_sizes(data, entities, relations)
@@ -108,27 +110,7 @@ def Prepare_data_run():
 
 if __name__ == "__main__":
     
-    #subset 1
-    full_data=load_data('OPIEC_read', 3) # 3 - for subset 1; 9 - for subset 2; 100 for full data
-    data, entities, relations = prepare_data(full_data, 0.1, True)
-    to_pickle = to_dict(data, entities, relations)
-    save_pkl('Subset_1', to_pickle)  #Subset1 #Subset2 # Full_data
-    print_sizes(data, entities, relations)
-
-    #subset 2
-    full_data=load_data('OPIEC_read', 9) 
-    data, entities, relations = prepare_data(full_data, 0.1, True)
-    to_pickle = to_dict(data, entities, relations)
-    save_pkl('Subset_2', to_pickle)  #Subset1 #Subset2 # Full_data
-    print_sizes(data, entities, relations)
-
-    #full data
-    full_data=load_data('OPIEC_read', 100) # 3 - for subset 1; 9 - for subset 2; 100 for full data
-    data, entities, relations = prepare_data(full_data, 0.1, True)
-    to_pickle = to_dict(data, entities, relations)
-    save_pkl('Full_data', to_pickle)  
-    print_sizes(data, entities, relations)
-    descriptive_stat(data)
+    Prepare_data_run()
 
 
 
