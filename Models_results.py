@@ -1,34 +1,14 @@
-import tensorflow as tf
-#tf.compat.v1.disable_eager_execution()
 import pandas as pd
-import os
 import random
-import pickle
 import numpy as np
-import ampligraph
-from ampligraph.latent_features import TransE, ComplEx, DistMult, HolE, ConvE, ConvKB, RandomBaseline
-from ampligraph.evaluation import select_best_model_ranking
+from ampligraph.latent_features import TransE, ComplEx, DistMult, HolE
 from ampligraph.utils import save_model, restore_model
 from ampligraph.evaluation import evaluate_performance
 from ampligraph.evaluation import mr_score, mrr_score, hits_at_n_score
-from ampligraph.evaluation import train_test_split_no_unseen
-
-from sklearn.cluster import AgglomerativeClustering
-from sklearn.cluster import KMeans
 from clusteval import clusteval
-
-from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.metrics.cluster import adjusted_rand_score
 from sklearn.decomposition import PCA
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-from adjustText import adjust_text
-from ampligraph.discovery import find_clusters
-from ampligraph.utils import create_tensorboard_visualizations
-from Prepare_data import load_data, prepare_data
 from Read_corpus import load_dict
-from sklearn_extra.cluster import KMedoids
 
 
 def print_evaluation(ranks):
@@ -44,11 +24,20 @@ def train_save(model, data, model_name):
             early_stopping=False),                          
     save_model(model, 'models/'+model_name)
 
-def evaluate_link(model, data, model_name, entities_subset: None):
+def evaluate_link(model, data, model_name, entities_subset:bool):
+    data, entities, relations= load_dict('Subset_1')
     X_filter = np.concatenate([data['train'], data['valid'], data['test']], 0)
-    ranks = evaluate_performance(data['test'], 
-                                model=model, 
-                                filter_triples=X_filter, entities_subset=entities_subset)
+    if entities_subset:
+        random.seed(1)
+        random.shuffle(entities)
+        ent_eval=entities[:2000]
+        ranks = evaluate_performance(data['test'], 
+                                    model=model, 
+                                    filter_triples=X_filter, entities_subset=ent_eval)
+    else:
+        ranks = evaluate_performance(data['test'], 
+                                    model=model, 
+                                    filter_triples=X_filter)    
     print(model_name,":")
     print_evaluation(ranks)
     return {'model': model_name, 'mr': mr_score(ranks), 'mrr': mrr_score(ranks), 'hits@1': hits_at_n_score(ranks, 1), 'hits@10': hits_at_n_score(ranks, 10), 'hits@100': hits_at_n_score(ranks, 100)}
@@ -128,21 +117,6 @@ def Model_results_baseline():
     print(eval_baseline)
     eval_baseline.to_csv("Baseline_results.csv")
 
-# ##problem was here  - TODO delete
-# def Model_results_subset2():
-#     #train best models on bigger data
-#     gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
-#     for (model_class, model_name, table_path) in [(TransE, 'TransE_best_9', 'Model_selectionTransE_best_3.csv'),(TransE, 'TransE_best_9', 'Model_selectionTransE_best_3.csv')]: #[(ComplEx, 'ComplEx_best_9', 'Model_selectionComplEx_best_3.csv'), (HolE, 'HolE_best_9', 'Model_selectionHolE_best_3.csv'), (DistMult, 'DistMult_best_9', 'Model_selectionDistMult_best_3.csv')]:#], ComplEx, HolE, DistMult]   (TransE, 'TransE_best_3', 'Model_selectionTransE_best_3.csv'), (ComplEx, 'ComplEx_best_3'),                     
-#        data_path='Subset_2'
-#        train_best_params(table_path, data_path, model_class, model_name)
-#        clustering_results_with_params(model, 'TransE_full', gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
-
-# def Model_results_full():
-#     data_path='Full_data'
-#     gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
-#     train_best_params('Model_selectionTransE_best_3.csv', data_path, TransE, 'TransE_full')
-#     clustering_results_with_params(model, 'TransE_full', gs_rels, gs_clusters, 'Model_selection_clusteringTransE_2nd_best.csv')
-    
 def Model_results_link():
      # evaluate link prediction performance
     link_pr_result=pd.DataFrame()
@@ -150,48 +124,16 @@ def Model_results_link():
     for (modelpath, model_name) in [("models/TransE_bl",'TransE_bl'), ("models/ComplEx_bl",'ComplEx_bl'), ("models/HolE_bl", 'HolE_bl'), ("models/DistMult_bl", 'DistMult_bl'),
     ('models/TransE_best_sb1', 'TransE_best_sb1'), ('models/ComplEx_best_sb1', 'ComplEx_best_sb1'), ('models/HolE_best_sb1', 'HolE_best_sb1'), ('models/DistMult_best_sb1', 'DistMult_best_sb1')]:
         model=restore_model(modelpath)
-        result=evaluate_link(model, data, model_name)
+        result=evaluate_link(model, data, model_name, False)
         link_pr_result=link_pr_result.append(result, ignore_index=True)
     data, entities, relations= load_dict('Full_data')
     model=restore_model('models/TransE_full')
-    result=evaluate_link(model, data, 'TransE_full')
+    result=evaluate_link(model, data, 'TransE_full', True)
     link_pr_result=link_pr_result.append(result, ignore_index=True)
     link_pr_result.to_csv('Link_prediction_result.csv')
 
 if __name__ == "__main__":
-# 1. train and save, evaluate default with default clustering. 
-    data, entities, relations= load_dict('Subset_1')
-    for model, model_name in [(TransE(verbose=True), 'TransE_bl'), (ComplEx(verbose=True), 'ComplEx_bl'), (HolE(verbose=True), 'HolE_bl'), (DistMult(verbose=True), 'DistMult_bl')]:
-        train_save(model, data, model_name)
-    gs_rels, gs_clusters=gold_st('Gold_standard_manual.csv', relations)
-    eval_baseline=pd.DataFrame()
-    for model_path, model_name in [('models/TransE_bl', 'TransE_bl'), ('models/ComplEx_bl', 'ComplEx_bl'), ('models/HolE_bl', 'HolE_bl'), ('models/DistMult_bl', 'DistMult_bl')]:
-        model= restore_model(model_path)
-        eval_baseline=eval_baseline.append(clustering_result (model, model_name, gs_rels, gs_clusters), ignore_index=True)
-    print(eval_baseline)
-    eval_baseline.to_csv("Baseline_results.csv")
-
-
-    #2 . evaluate link prediction
-    link_pr_result=pd.DataFrame()
-    transe=restore_model("models/TransE_preproc")
-    complex=restore_model("models/ComplEx_preproc")
-    hole=restore_model("models/HolE_pre")
-    distmult=restore_model("models/DistMult_pre")
-
-    for (model, model_name) in [(transe,'TransE_d')]: #,(complex,'ComplEx_d'), (hole, 'HolE_d'), (distmult, 'DistMult_d')]:
-        result=evaluate_link(model, data, model_name)
-        link_pr_result=link_pr_result.append(result, ignore_index=True)
-    link_pr_result.to_csv('Link_prediction_result.csv')    
-
-    model=restore_model('models/TransE_full')
-    random.seed(1)
-    random.shuffle(entities)
-    print(len(entities))
-    ent_eval=entities[:2000]
-    print(ent_eval[:3])
-    result=evaluate_link(model, data, 'TransE_full', entities_subset=ent_eval)
-    print(result)
-
+    Model_results_baseline()
+    Model_results_link()
 
       
