@@ -53,3 +53,4 @@ The result is different from "Gold_standard_manual.csv" because it produces temp
 *Visualize.py* -the script provides functions for plotting embeddings in 2D together with labeled relations.
 
 
+© 2022 Ganna Bodnya
