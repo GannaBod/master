@@ -1,42 +1,12 @@
 import pandas as pd
-import os
-import random
-import pickle
 import numpy as np
-import ampligraph
-
-from sklearn.cluster import AgglomerativeClustering
-from sklearn.cluster import KMeans
-
-from sklearn.metrics import silhouette_samples, silhouette_score
-from sklearn.metrics.cluster import adjusted_rand_score
-
-from ampligraph.utils import save_model, restore_model
+from ampligraph.utils import restore_model
 from sklearn.decomposition import PCA
-
 import matplotlib.pyplot as plt
 import seaborn as sns
 from adjustText import adjust_text
-from ampligraph.discovery import find_clusters
-from ampligraph.utils import create_tensorboard_visualizations
-from clusteval import clusteval
-
-#from Models_results import load_data, prepare_data, gold_st, clustering_results_with_params
 from Models_results import *
 from Read_corpus import load_dict
-from sklearn_extra.cluster import KMedoids
-from sklearn.cluster import DBSCAN
-
-# def gold_st(DOC_PATH, relations):
-#     gs=pd.read_csv(DOC_PATH)
-#     gs_rels=[]
-#     gs_clusters=[]
-#     for row in gs.itertuples():
-#         if row.verb in relations:
-#             gs_rels.append(row.verb)
-#             gs_clusters.append(row.cluster)
-#     print("Gold standard relations number:",  len(gs_rels))
-#     return gs, gs_rels, gs_clusters
 
 def visualize(gs_rels, model, gs_clusters, clusters, model_name):
     E_gs=model.get_embeddings(np.array(gs_rels), embedding_type='relation')
@@ -51,7 +21,7 @@ def visualize(gs_rels, model, gs_clusters, clusters, model_name):
     x=df["embedding1"]
     y=df["embedding2"]
     sns.scatterplot(data=df, x="embedding1", y="embedding2", hue="gs_clusters", ax=axes[0])
-    axes[0].set_title('Clusters acc. to algorithm')
+    axes[0].set_title('Clusters acc. to GS')
     texts = []
     for i in range(len(x)):
         t = axes[0].text(x[i], y[i], df['gs_rel'][i], ha='center', va='center')
@@ -84,15 +54,11 @@ def save_results(model_name, ars, silh_best, n_cl_opt):
 
 if __name__ == "__main__":
 
-    data, entities, relations=load_dict('Archive/lastDocs/Preprocessed')
-    #gs_rels, gs_clusters =gold_st("Gold_standard_manual.csv", relations)
-    gs_rels, gs_clusters =gold_st("Archive/lastDocs/outlier.csv", relations)
-
-
-    model=restore_model("models/lastState/HolE_pre")
-    print('ok')
-    cl=clustering_results_with_params(model, "ComplEx_bl", gs_rels, gs_clusters, 'Archive/Model_selection_clusteringComplEx.csv')
+    data, entities, relations=load_dict('Subset_1')
+    gs_rels, gs_clusters =gold_st("Gold_standard_manual.csv", relations)
+    model=restore_model("models/TransE_bl")
+    cl=clustering_results_with_params(model, "TransE_bl", gs_rels, gs_clusters, 'results/Model_selection_clusteringTransE_best_sb1.csv')
     clusters=cl['clusters']
-    visualize(gs_rels, model, gs_clusters, clusters, "Cluster assignment with outlier")
+    visualize(gs_rels, model, gs_clusters, clusters, "Clusters plotted in 2D")
 
     
