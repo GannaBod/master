@@ -18,7 +18,9 @@ To run the code as described in the thesis:
 1. install dependencies with command 
 `pip install -r requirements.txt`
 
-2. download the full data in the folder "/data"
+2. download the full data in the folder "/data" via link: https://drive.google.com/drive/folders/1c3yMKLF7fGjIKjwvj_sQ0icRA02m_gzR?usp=sharing
+ OR
+chnage the AVRO_DIRECTORY path in line 15 in main.py
 3. run main.py file
 
 
