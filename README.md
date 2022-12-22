@@ -1,4 +1,4 @@
-# Repository for the master's thesis: "Knowledge graph embeddings for semantic relation clustering"
+# Repository for the master's thesis: ["Knowledge graph embeddings for semantic relation clustering"](https://drive.google.com/file/d/1-kbp9Jt-ECVCjt0x-6obuBRI9nL488D6/view?usp=sharing)
 
 ## Abstract
 
