@@ -7,7 +7,7 @@ both stages of evaluation: on the manually constructed gold standard and human e
 
 ## Data
 
-OPIEC corpus can be loaded from https://drive.google.com/drive/folders/1c3yMKLF7fGjIKjwvj_sQ0icRA02m_gzR?usp=sharing
+OPIEC corpus can be loaded from [the link](https://drive.google.com/drive/folders/1c3yMKLF7fGjIKjwvj_sQ0icRA02m_gzR?usp=sharing)
 
 
 ## Code execution
@@ -18,17 +18,16 @@ To run the code as described in the thesis:
 1. install dependencies with command 
 `pip install -r requirements.txt`
 
-2. download the full data in the folder "/data" via link: https://drive.google.com/drive/folders/1c3yMKLF7fGjIKjwvj_sQ0icRA02m_gzR?usp=sharing
+2. download the full data in the folder "/data" via the [link](https://drive.google.com/drive/folders/1c3yMKLF7fGjIKjwvj_sQ0icRA02m_gzR?usp=sharing)
  OR
 chnage the AVRO_DIRECTORY path in line 15 in main.py
 3. run main.py file
 
 
-Already trained models can be downloaded from https://drive.google.com/drive/folders/1Kws7nfF2xDWs7OavhnBy7XKBC3QhBEUq?usp=sharing
+Already trained models can be downloaded from the ['models' folder](https://drive.google.com/drive/folders/1Kws7nfF2xDWs7OavhnBy7XKBC3QhBEUq?usp=sharing)
 
 
-The project with the full results and models - this is how the project folder looks like when the code is finished can be found under:
-https://drive.google.com/drive/folders/1KmJzU2y1U3dJ7MkNeaOnquXu71qyghHh?usp=sharing
+The project with the full results and models - this is how the project folder looks like when the code is finished can be found under [the link](https://drive.google.com/drive/folders/1KmJzU2y1U3dJ7MkNeaOnquXu71qyghHh?usp=sharing)
 
 
 ## Code description
